@@ -3,32 +3,15 @@ import {View,Text,Image,FlatList,TouchableOpacity,StyleSheet,SafeAreaView,TextIn
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
+import { artists } from '../data/artists';
+import { albums } from '../data/albums';
+import { charts } from '../data/charts';
+import { tracks } from '../data/tracks';
 
 
 const HomeScreen = () => {
  
-  const suggestions = [
-    { id: '1',  image: require('../assets/Container 26.png') },
-    { id: '2',  image: require('../assets/Container 27.png') },
-  ];
-
-  const charts = [
-    { id: '1',  image: require('../assets/Container 31.png') },
-    { id: '2',  image: require('../assets/Container 32.png') },
-    { id: '3',  image: require('../assets/Container 33.png') },
-  ];
-
-  const trendingAlbums = [
-    { id: '1', title: 'ME', artist: 'Jessica Gonzalez', image: require('../assets/Image 45.png') },
-    { id: '2', title: 'Magna nost', artist: 'Brian Thomas', image: require('../assets/Image 46.png') },
-    { id: '3', title: 'Magna nost', artist: 'Christop', image: require('../assets/Image 47.png') },
-  ];
-
-  const popularArtists = [
-    { id: '1', name: 'Jennifer Wilson', image: require('../assets/Image 39.png') },
-    { id: '2', name: 'Elizabeth Hall', image: require('../assets/Image 40.png') },
-    { id: '3', name: 'Antho', image: require('../assets/Image 41.png') },
-  ];
+  const suggestionTracks = tracks.slice(0, 3);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,24 +63,26 @@ const HomeScreen = () => {
         renderItem={() => (
           <>
            
-            <View style={styles.section}>
+           <View style={styles.section}>
               <Text style={styles.sectionTitle}>Suggestions for you</Text>
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={suggestions}
-                renderItem={({ item }) => (
-                  <View style={styles.suggestionCard}>
+                <FlatList
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  data={suggestionTracks}
+                  renderItem={({ item }) => (
+                    <View style={styles.suggestionCard}>
                     <TouchableOpacity>
-                        <Image source={item.image} style={styles.suggestionImage} />
+                      <Image source={{uri: item.artwork}} style={styles.suggestionImage} />
+                    <View style={styles.overlay}>
+                        <Text style={styles.suggestionTitle} numberOfLines={1}>{item.title}</Text>
+                        <Text style={styles.suggestionArtist} numberOfLines={1}>{item.artist}</Text>
+                    </View>
                     </TouchableOpacity>
-                    
-                    
-                    
                   </View>
-                )}
-                keyExtractor={item => item.id}
-              />
+                  )}
+                  keyExtractor={item => item.id.toString()}
+                  style ={styles.suggestionsFlat}
+                  />
             </View>
 
             
@@ -110,7 +95,7 @@ const HomeScreen = () => {
                 renderItem={({ item }) => (
                   
                     <TouchableOpacity style={styles.chartCard }>
-                        <Image source={item.image} style={styles.chartImage} />
+                        <Image source={{uri:item.coverImage}} style={styles.chartImage} />
                         <Text>Daily chart-toppers update</Text>
                      </TouchableOpacity>
                     
@@ -126,7 +111,7 @@ const HomeScreen = () => {
             
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Trending albums</Text>
+                <Text style={styles.sectionTitle2}>Trending albums</Text>
                 <TouchableOpacity>
                   <Text style={styles.seeAll}>See all</Text>
                 </TouchableOpacity>
@@ -134,15 +119,16 @@ const HomeScreen = () => {
               <FlatList
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                data={trendingAlbums}
+                data={albums}
                 renderItem={({ item }) => (
                   <View style={styles.albumCard}>
-                    <Image source={item.image} style={styles.albumImage} />
+                    <Image source={{uri:item.image}} style={styles.albumImage} />
                     <Text style={styles.albumTitle}>{item.title}</Text>
                     <Text style={styles.albumArtist}>{item.artist}</Text>
                   </View>
                 )}
                 keyExtractor={item => item.id}
+                style ={styles.albumFlat}
               />
             </View>
 
@@ -150,7 +136,7 @@ const HomeScreen = () => {
             <View style={styles.section}>
               
               <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Popular artists</Text>
+              <Text style={styles.sectionTitle2}>Popular artists</Text>
                 <TouchableOpacity>
                   <Text style={styles.seeAll}>See all</Text>
                 </TouchableOpacity>
@@ -158,10 +144,10 @@ const HomeScreen = () => {
               <FlatList
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                data={popularArtists}
+                data={artists}
                 renderItem={({ item }) => (
                   <View style={styles.artistCard}>
-                    <Image source={ item.image } style={styles.artistImage} />
+                    <Image source={{uri:item.image }} style={styles.artistImage} />
                     <Text style={styles.artistName}>{item.name}</Text>
                     <TouchableOpacity style={styles.followButton}>
                       <Text style={styles.followButtonText}>Follow</Text>
@@ -222,6 +208,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
+  sectionTitle2:{
+    fontSize: 20,
+    fontWeight: 'bold',
+    
+    marginBottom: 12,
+
+  },
   headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -275,29 +268,68 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 15,
+    marginLeft: 10,
     marginBottom: 12,
   },
   seeAll: {
     color: '#666',
+    
   },
   suggestionCard: {
     width: 200,
     marginLeft: 16,
   },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    paddingHorizontal: 15,
+  },
+  suggestionsFlat:{
+    paddingLeft:20
+
+  },
+  suggestionCard: {
+    marginRight: 15,
+    width: 150,
+    height: 200,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
   suggestionImage: {
     width: '100%',
-    height: 300,
-    borderRadius: 8,
-    marginBottom: 8,
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  overlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 10,
+  },
+  suggestionTitle: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  suggestionArtist: {
+    color: 'white',
+    fontSize: 14,
   },
   suggestionTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: 'white',
   },
   suggestionArtist: {
     fontSize: 14,
-    color: '#666',
+    color: 'white',
   },
   chartList:{
     
@@ -327,6 +359,10 @@ const styles = StyleSheet.create({
   albumCard: {
     width: 150,
     marginLeft: 17,
+  },
+  albumFlat:{
+    paddingLeft:5
+
   },
   albumImage: {
     width: '100%',

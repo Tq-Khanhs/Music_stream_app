@@ -1,67 +1,30 @@
 import React from 'react'
 import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet,FlatList } from 'react-native'
-import  { useState } from 'react';
+import  { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
+import { charts } from '../data/charts';
+import { tracks } from '../data/tracks';
 
 
-
-const tracks  = [
-  {
-    id: '1',
-    title: 'FLOWER',
-    artist: 'Jessica Gonzalez',
-    plays: '2.1M',
-    duration: '3:36',
-    image: require('../assets/Image 83.png')
-  },
-  {
-    id: '2', 
-    title: 'Shape of You',
-    artist: 'Anthony Taylor',
-    plays: '68M',
-    duration: '3:35',
-    image: require('../assets/Image 84.png')
-  },
-  {
-    id: '3',
-    title: 'Blinding Lights',
-    artist: 'Brian Bailey',
-    plays: '93M',
-    duration: '4:39',
-    image: require('../assets/Image 86.png')
-  },
-  {
-    id: '4',
-    title: 'Levitating',
-    artist: 'Anthony Taylor',
-    plays: '9M',
-    duration: '7:48',
-    image: require('../assets/Image 87.png')
-  },
-  {
-    id: '5',
-    title: 'Astronaut in the Ocean',
-    artist: 'Pedro Moreno',
-    plays: '23M',
-    duration: '3:36',
-    image: require('../assets/Image 55.png')
-  },
-  {
-    id: '6',
-    title: 'Dynamite',
-    artist: 'Elena Jimenez',
-    plays: '10M',
-    duration: '6:22',
-    image: require('../assets/Image 56.png')
-  },
-  
-]
 
 export default function AudiolistScreen() {
     const [selectedTrack, setSelectedTrack] = useState("");
+    const [selectedChart, setSelectedChart] = useState(charts[0]);
+    const [chartTracks, setChartTracks] = useState([]);
+    useEffect(() => {
+      
+      
+      const fetchedTracks = selectedChart.trackIds.map(id => {
+        const track = tracks.find(track => track.id === id);
+        return track;
+      }).filter(track => track !== undefined);
+      
+      
+      setChartTracks(fetchedTracks);
+    }, [selectedChart]);
 
     const handleTrackPress = (track) => {
         setSelectedTrack(track);
@@ -80,17 +43,17 @@ export default function AudiolistScreen() {
 
         <View style={styles.playlistInfo}>
           <Image
-            source={require('../assets/Container 31.png')}
+            source={{uri:charts[0].coverImage}}
             style={styles.playlistCover}
           />
           <View style={styles.playlist}>
-          <Text style={styles.playlistTitle}>Top 50 - Canada</Text>
+          <Text style={styles.playlistTitle}>{charts[0].title}</Text>
           <View style={styles.playlistStats}>
             <Icon name="heart" size={20} color="blue" />
-            <Text style={styles.statsText}>1,234</Text>
-            <Text style={styles.statsText}>• 05:10:18</Text>
+            <Text style={styles.statsText}>{charts[0].likes}</Text>
+            <Text style={styles.statsText}>• {charts[0].duration}</Text>
           </View>
-          <Text style={styles.playlistDescription}>Daily chart-toppers update</Text>
+          <Text style={styles.playlistDescription}>{charts[0].description}</Text>
 
           </View>
           
@@ -120,7 +83,7 @@ export default function AudiolistScreen() {
         </View>
         
         <FlatList
-          data={tracks}
+          data={chartTracks}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity 
@@ -128,7 +91,7 @@ export default function AudiolistScreen() {
             >
             <View style={styles.trackItem}>
               <Image
-                source={item.image }
+                source={{ uri: item.artwork }}
                 style={styles.trackImage}
               />
               <View style={styles.trackInfo}>
@@ -152,12 +115,12 @@ export default function AudiolistScreen() {
       {selectedTrack && (
         <View style={styles.nowPlaying}>
           <Image
-            source={selectedTrack.image }
+            source={{uri: selectedTrack.artwork} }
             style={styles.miniTrackImage}
           />
           <View style={styles.miniTrackInfo}>
             <Text style={styles.miniTrackTitle}>{selectedTrack.title}</Text>
-            <Text style={styles.miniTrackArtist}>Me • {selectedTrack.artist}</Text>
+            <Text style={styles.miniTrackArtist}>{selectedTrack.artist}</Text>
           </View>
           <TouchableOpacity>
             <Icon name="heart" size={20} color="white"  style={{paddingRight:20}}/>

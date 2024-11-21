@@ -4,94 +4,42 @@ import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
+import { artists } from '../data/artists';
+import { tracks } from '../data/tracks';
+import { albums } from '../data/albums';
 
-
-
-
-
-const popularSongs = [
-  {
-    id: '1',
-    title: 'Let you free',
-    artist: 'Ryan Young',
-    date: '4 JAN • 2023',
-    image: require('../assets/Image 66.png')
-  },
-  {
-    id: '2',
-    title: 'Blinding Lights',
-    artist: 'Ryan Young',
-    date: '15 MAR • 2023',
-    image: require('../assets/Image 67.png')
-  },
-  {
-    id: '3',
-    title: 'Levitating',
-    artist: 'Ryan Young',
-    date: '22 APR • 2023',
-    image: require('../assets/Image 68.png')
-  },
-  {
-    id: '4',
-    title: 'Astronaut in the Ocean',
-    artist: 'Ryan Young',
-    date: '30 MAY • 2023',
-    image: require('../assets/Image 69.png')
-  },
-  {
-    id: '5',
-    title: 'Dynamite',
-    artist: 'Ryan Young',
-    date: '12 JUN • 2023',
-    image: require('../assets/Image 70.png')
-  }
-]
-
-const albums = [
-  {
-    id: '1',
-    title: 'ME',
-    artist: 'Jessica Gonzalez',
-    image: require('../assets/Image 71.png')
-  },
-  {
-    id: '2',
-    title: 'Magna nost',
-    artist: 'Jessica Gonzalez',
-    image: require('../assets/Image 72.png')
-  },
-  {
-    id: '3',
-    title: 'Proident',
-    artist: 'Jessica Gonzalez',
-    image: require('../assets/Image 77.png')
-  }
-]
-
-const similarAlbums = [
-  {
-    id: '1',
-    name: 'Magna nost',
-    artist: 'Jessica Gonzalez',
-    image: require('../assets/Image 74.png')
-  },
-  {
-    id: '2',
-    name: 'Exercitatio',
-    artist: 'Brian Harris',
-    image: require('../assets/Image 75.png')
-  },
-  {
-    id: '3',
-    name: 'Tempor no',
-    artist: 'Tyler Anderson',
-    image: require('../assets/Image 76.png')
-  }
-]
 
 export default function ProfileScreen() {
-    const [showFullAbout, setShowFullAbout] = useState(false)
+    const [selectedTrack, setSelectedTrack] = useState("");
+    const [showFullAbout, setShowFullAbout] = useState(false);
+    const [selectedArtist, setSelectedArtist] = useState(artists[0]);
+    const [chartTracks, setChartTracks] = useState([]);
+    const otherArtistAlbums = albums.filter(album => album.artist !== artists[0].name);
+
+    const [artistAlbums, setartistAlbums] = useState([]);
+    useEffect(() => {
+      
+      
+      const fetchedTracks = selectedArtist.tracksId.map(id => {
+        const track = tracks.find(track => track.id === id);
+        return track;
+      }).filter(track => track !== undefined);
+      setChartTracks(fetchedTracks);
+
+      const fetchedAlbums = selectedArtist.albumsId.map(id => {
+        const album = albums.find(album => album.id === id);
+        return album;
+      }).filter(album => album !== undefined);
+      setartistAlbums(fetchedAlbums);
+
+      
+    }, [selectedArtist]);
+
+    const handleTrackPress = (track) => {
+      setSelectedTrack(track);
+    };
+
 
     const aboutText = "Do in cupidatat aute et in officia aute laboris est Lorem est nisi dolor consequat voluptate duis irure. Veniam quis amet irure cillum elit aliquip sunt cillum cillum do aliqua voluptate ad non magna elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
 
@@ -109,11 +57,11 @@ export default function ProfileScreen() {
         
         <View style={styles.profile}>
           <Image
-            source={require("../assets/Image 63.png")}
+            source={{uri:artists[0].image}}
             style={styles.profileImage}
           />
-          <Text style={styles.profileName}>Ryan Young</Text>
-          <Text style={styles.followersCount}>56.1K Followers</Text>
+          <Text style={styles.profileName}>{artists[0].name}</Text>
+          <Text style={styles.followersCount}>{artists[0].followers} Followers</Text>
           <View style={styles.profileActions}>
             <View style= {styles.buttonContainer}>
             <TouchableOpacity style={styles.followButton}>
@@ -143,34 +91,45 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Popular</Text>
           <FlatList
-            data={popularSongs}
-            keyExtractor={(item) => item.id}
-            style = {styles.albumList}
-            renderItem={({ item }) => (
-              <View style={styles.songItem}>
-                <Image source={item.image} style={styles.songImage} />
-                <View style={styles.songInfo}>
-                  <Text style={styles.songTitle}>{item.title}</Text>
-                  <Text style={styles.songMeta}>{item.date}</Text>
+          data={chartTracks}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              onPress={() => handleTrackPress(item)}
+            >
+            <View style={styles.trackItem}>
+              <Image
+                source={{ uri: item.artwork }}
+                style={styles.trackImage}
+              />
+              <View style={styles.trackInfo}>
+                <Text style={styles.trackTitle}>{item.title}</Text>
+                <Text style={styles.trackArtist}>{item.artist}</Text>
+                <View style={styles.trackStats}>
+                  <Text style={styles.playsText}>{item.plays}</Text>
+                  <Text style={styles.durationText}>• {item.duration}</Text>
                 </View>
-                <TouchableOpacity>
+              </View>
+              <TouchableOpacity>
                     <Icon2 name="dots-horizontal" size={20} color="black" />
                 </TouchableOpacity>
-              </View>
-            )}
-          />
+            </View>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.trackList}
+        />
         </View>
 
         
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Albums</Text>
           <FlatList
-            data={albums}
+            data={artistAlbums}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.albumItem}>
-                <Image source={item.image } style={styles.albumImage} />
-                <Text style={styles.albumTitle}>{item.title}</Text>
+                <Image source={{uri:item.image }} style={styles.albumImage} />
+                <Text style={styles.albumTitle}>{item.name}</Text>
                 <Text style={styles.albumTitle}>{item.artist}</Text>
               </TouchableOpacity>
             )}
@@ -180,7 +139,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* About */}
+        
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
           <Image source={require('../assets/Image 73.png')}/>
@@ -198,11 +157,11 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Fans also like</Text>
           <FlatList
-            data={similarAlbums}
+            data={otherArtistAlbums}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.artistItem}>
-                <Image source={ item.image } style={styles.artistImage} />
+                <Image source={{uri: item.image }} style={styles.artistImage} />
                 <Text style={styles.artistName}>{item.name}</Text>
                 <Text style={styles.artistName}>{item.artist}</Text>
               </TouchableOpacity>
@@ -213,6 +172,24 @@ export default function ProfileScreen() {
           />
         </View>
       </ScrollView>
+      {selectedTrack && (
+        <View style={styles.nowPlaying}>
+          <Image
+            source={{uri: selectedTrack.artwork} }
+            style={styles.miniTrackImage}
+          />
+          <View style={styles.miniTrackInfo}>
+            <Text style={styles.miniTrackTitle}>{selectedTrack.title}</Text>
+            <Text style={styles.miniTrackArtist}>{selectedTrack.artist}</Text>
+          </View>
+          <TouchableOpacity>
+            <Icon name="heart" size={20} color="white"  style={{paddingRight:20}}/>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Icon name="play" size={23} color="white" />
+          </TouchableOpacity>
+        </View>
+      )}
 
      
       <View style={styles.tabBar}>
@@ -408,5 +385,70 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     color: '#666',
+  },
+  
+  trackItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16
+  },
+  trackImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 4,
+    backgroundColor: '#eee'
+  },
+  trackInfo: {
+    flex: 1,
+    marginLeft: 12
+  },
+  trackTitle: {
+    fontSize: 16,
+    fontWeight: '500'
+  },
+  trackArtist: {
+    color: '#666',
+    marginTop: 2
+  },
+  trackStats: {
+    flexDirection: 'row',
+    marginTop: 2
+  },
+  playsText: {
+    color: '#666',
+    fontSize: 12
+  },
+  durationText: {
+    color: '#666',
+    fontSize: 12,
+    marginLeft: 8
+  },
+  nowPlaying: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    backgroundColor: 'black'
+  },
+  miniTrackImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 4,
+    backgroundColor: '#eee'
+  },
+  miniTrackInfo: {
+    flex: 1,
+    marginLeft: 12
+  },
+  miniTrackTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'white'
+  },
+  miniTrackArtist: {
+   
+    fontSize: 12,
+    color: 'white'
   },
 })

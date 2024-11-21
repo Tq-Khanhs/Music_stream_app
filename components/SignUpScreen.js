@@ -11,7 +11,8 @@ import {
   Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-export default function LoginScreen() {
+export  default function SignUpScreen() {
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
   
@@ -28,8 +29,16 @@ export default function LoginScreen() {
             
   
             <View style={styles.formContainer}>
-              <Text style={styles.formTitle}>Welcome Back</Text>
+              <Text style={styles.formTitle}>Create Account</Text>
               
+              <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                placeholderTextColor="#rgba(255,255,255,0.7)"
+                value={name}
+                onChangeText={setName}
+              />
+  
               <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -49,19 +58,20 @@ export default function LoginScreen() {
                 secureTextEntry
               />
   
-              <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+              <TouchableOpacity style={styles.submitButton}>
+                <Text style={styles.submitButtonText}>Sign Up</Text>
               </TouchableOpacity>
   
-              <TouchableOpacity style={styles.submitButton}>
-                <Text style={styles.submitButtonText}>Log In</Text>
-              </TouchableOpacity>
+              <Text style={styles.termsText}>
+                By signing up, you agree to our Terms & Privacy Policy
+              </Text>
             </View>
           </SafeAreaView>
         </KeyboardAvoidingView>
       </LinearGradient>
     );
   }
+  
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -142,26 +152,20 @@ export default function LoginScreen() {
       color: '#fff',
       marginBottom: 16,
     },
-    forgotPassword: {
-      alignSelf: 'center',
-      marginBottom: 30,
-      marginTop: 40
-    },
-    forgotPasswordText: {
-      color: '#fff',
-      fontSize: 14,
-    },
+    
     submitButton: {
       backgroundColor: '#000',
       paddingVertical: 16,
       borderRadius: 30,
       marginBottom: 16,
+      marginTop:50
     },
     submitButtonText: {
       color: '#fff',
       textAlign: 'center',
       fontSize: 16,
       fontWeight: '600',
+      
     },
     termsText: {
       color: 'rgba(255,255,255,0.7)',
