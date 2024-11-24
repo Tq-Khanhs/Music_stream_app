@@ -11,7 +11,11 @@ import {
   Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-export default function LoginScreen() {
+import Icon4 from 'react-native-vector-icons/MaterialIcons'
+
+
+
+export default function LoginScreen({navigation}) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
   
@@ -28,7 +32,14 @@ export default function LoginScreen() {
             
   
             <View style={styles.formContainer}>
+              
+              
+              <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon4 name="arrow-back-ios" size={20} color="black" />
+              </TouchableOpacity>
               <Text style={styles.formTitle}>Welcome Back</Text>
+            </View>
               
               <TextInput
                 style={styles.input}
@@ -53,7 +64,7 @@ export default function LoginScreen() {
                 <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
   
-              <TouchableOpacity style={styles.submitButton}>
+              <TouchableOpacity style={styles.submitButton}  onPress={() => navigation.navigate('Home')}>
                 <Text style={styles.submitButtonText}>Log In</Text>
               </TouchableOpacity>
             </View>
@@ -74,6 +85,15 @@ export default function LoginScreen() {
       width: 50,
       height: 50,
       resizeMode: 'contain',
+    },
+    header:{
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      marginBottom: 80,
+      
+      
+
     },
     contentContainer: {
       flex: 1,
@@ -131,7 +151,7 @@ export default function LoginScreen() {
       fontSize: 28,
       fontWeight: 'bold',
       color: '#fff',
-      marginBottom: 80,
+      marginBottom: 3
     },
     input: {
       backgroundColor: 'rgba(255,255,255,0.2)',

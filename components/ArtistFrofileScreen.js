@@ -8,12 +8,15 @@ import { useState,useEffect } from 'react'
 import { artists } from '../data/artists';
 import { tracks } from '../data/tracks';
 import { albums } from '../data/albums';
+import { LogBox } from 'react-native';
 
-
-export default function ProfileScreen() {
+LogBox.ignoreLogs([
+  'VirtualizedLists should never be nested inside plain ScrollViews',
+]);
+export default function ProfileScreen( {route,navigation}) {
     const [selectedTrack, setSelectedTrack] = useState("");
     const [showFullAbout, setShowFullAbout] = useState(false);
-    const [selectedArtist, setSelectedArtist] = useState(artists[0]);
+    const [selectedArtist, setSelectedArtist] = useState(route.params);
     const [chartTracks, setChartTracks] = useState([]);
     const otherArtistAlbums = albums.filter(album => album.artist !== artists[0].name);
 
@@ -49,19 +52,20 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon4 name="arrow-back-ios" size={20} color="black" />
             </TouchableOpacity>
         </View>
+        
       <ScrollView>
         
         <View style={styles.profile}>
           <Image
-            source={{uri:artists[0].image}}
+            source={{uri:selectedArtist.image}}
             style={styles.profileImage}
           />
-          <Text style={styles.profileName}>{artists[0].name}</Text>
-          <Text style={styles.followersCount}>{artists[0].followers} Followers</Text>
+          <Text style={styles.profileName}>{selectedArtist.name}</Text>
+          <Text style={styles.followersCount}>{selectedArtist.followers} Followers</Text>
           <View style={styles.profileActions}>
             <View style= {styles.buttonContainer}>
             <TouchableOpacity style={styles.followButton}>

@@ -5,33 +5,34 @@ import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 
 
 
-export default function PlayaudioScreen() {
-  const [isPlaying, setIsPlaying] = useState(false)
 
+export default function PlayaudioScreen({route,navigation}) {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const track = route.params;
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
-        source={require('../assets/Image 58.png')}
+        source={{uri:track.artwork}}
         style={styles.background}
       >
         <View style={styles.header}>
           <TouchableOpacity>
             <Text style={styles.headerText}>Play</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="chevron-down" size={24} color="white" />
           </TouchableOpacity>
         </View>
         <View style={styles.content}>
           <View style={styles.trackInfo}>
-            <Text style={styles.title}>FLOWER</Text>
-            <Text style={styles.artist}>Jessica Gonzalez</Text>
+            <Text style={styles.title}>{track.title}</Text>
+            <Text style={styles.artist}>{track.artist}</Text>
           </View>
           <View style={styles.progressContainer}>
             <Image source={require('../assets/Group 4.png')} style={styles.waveform} />
             <View style={styles.timeContainer}>
-              <Text style={styles.timeText}>0:06</Text>
-              <Text style={styles.timeText}>3:08</Text>
+              <Text style={styles.timeText}>0:00</Text>
+              <Text style={styles.timeText}>{track.duration}</Text>
             </View>
           </View>
           <View style={styles.controls}>

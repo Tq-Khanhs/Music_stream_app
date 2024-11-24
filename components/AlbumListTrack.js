@@ -10,21 +10,21 @@ import { tracks } from '../data/tracks';
 
 
 
-export default function AudiolistScreen({ route, navigation }) {
+export default function AlbumListTrack({ route, navigation }) {
     const [selectedTrack, setSelectedTrack] = useState("");
-    const [selectedChart, setSelectedChart] = useState(route.params);
-    const [chartTracks, setChartTracks] = useState([]);
+    const [selectedAlbum, setSelectedAlbums] = useState(route.params);
+    const [albumTracks, setAlbumTracks] = useState([]);
     useEffect(() => {
       
       
-      const fetchedTracks = selectedChart.trackIds.map(id => {
+      const fetchedTracks = selectedAlbum.tracksId.map(id => {
         const track = tracks.find(track => track.id === id);
         return track;
       }).filter(track => track !== undefined);
       
       
-      setChartTracks(fetchedTracks);
-    }, [selectedChart]);
+      setAlbumTracks(fetchedTracks);
+    }, [selectedAlbum]);
 
     const handleTrackPress = (track) => {
         setSelectedTrack(track);
@@ -43,17 +43,17 @@ export default function AudiolistScreen({ route, navigation }) {
 
         <View style={styles.playlistInfo}>
           <Image
-            source={{uri:selectedChart.coverImage}}
+            source={{uri:selectedAlbum.image}}
             style={styles.playlistCover}
           />
           <View style={styles.playlist}>
-          <Text style={styles.playlistTitle}>{selectedChart.title}</Text>
+          <Text style={styles.playlistTitle}>{selectedAlbum.name}</Text>
           <View style={styles.playlistStats}>
             <Icon name="heart" size={20} color="blue" />
-            <Text style={styles.statsText}>{selectedChart.likes}</Text>
-            <Text style={styles.statsText}>• {selectedChart.duration}</Text>
+            <Text style={styles.statsText}>{selectedAlbum.likes}</Text>
+            <Text style={styles.statsText}>• {selectedAlbum.duration}</Text>
           </View>
-          <Text style={styles.playlistDescription}>{selectedChart.description}</Text>
+          
 
           </View>
           
@@ -83,7 +83,7 @@ export default function AudiolistScreen({ route, navigation }) {
         </View>
         
         <FlatList
-          data={chartTracks}
+          data={albumTracks}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity 
@@ -174,7 +174,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 50,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    
    
   },
   
@@ -182,12 +183,20 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 8,
-    backgroundColor: '#6b46c1'
+    backgroundColor: '#6b46c1',
+    marginLeft:20
+    
+    
+    
+  },
+  playlist:{
+        width: "50%"
   },
   playlistTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 16
+    marginTop: 16,
+    height: 80
   },
   playlistStats: {
     flexDirection: 'row',
@@ -230,7 +239,8 @@ const styles = StyleSheet.create({
   },
   trackInfo: {
     flex: 1,
-    marginLeft: 12
+    marginLeft: 12,
+    
   },
   trackTitle: {
     fontSize: 16,

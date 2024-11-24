@@ -7,12 +7,16 @@ import { artists } from '../data/artists';
 import { albums } from '../data/albums';
 import { charts } from '../data/charts';
 import { tracks } from '../data/tracks';
+import { useState,useEffect } from 'react'
 
 
-const HomeScreen = () => {
+const HomeScreen = ({navigation}) => {
+  const [selectedTrack, setSelectedTrack] = useState("");
  
   const suggestionTracks = tracks.slice(0, 3);
-
+  const handleTrackPress = (track) => {
+    setSelectedTrack(track);
+  };
   return (
     <SafeAreaView style={styles.container}>
     
@@ -71,7 +75,7 @@ const HomeScreen = () => {
                   data={suggestionTracks}
                   renderItem={({ item }) => (
                     <View style={styles.suggestionCard}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleTrackPress(item)}>
                       <Image source={{uri: item.artwork}} style={styles.suggestionImage} />
                     <View style={styles.overlay}>
                         <Text style={styles.suggestionTitle} numberOfLines={1}>{item.title}</Text>
@@ -94,7 +98,7 @@ const HomeScreen = () => {
                 data={charts}
                 renderItem={({ item }) => (
                   
-                    <TouchableOpacity style={styles.chartCard }>
+                    <TouchableOpacity style={styles.chartCard } onPress={() => navigation.navigate('Audiolist',item)}>
                         <Image source={{uri:item.coverImage}} style={styles.chartImage} />
                         <Text>Daily chart-toppers update</Text>
                      </TouchableOpacity>
@@ -121,11 +125,11 @@ const HomeScreen = () => {
                 showsHorizontalScrollIndicator={false}
                 data={albums}
                 renderItem={({ item }) => (
-                  <View style={styles.albumCard}>
+                  <TouchableOpacity style={styles.albumCard} onPress={() => navigation.navigate('Album',item)}>
                     <Image source={{uri:item.image}} style={styles.albumImage} />
                     <Text style={styles.albumTitle}>{item.title}</Text>
                     <Text style={styles.albumArtist}>{item.artist}</Text>
-                  </View>
+                  </TouchableOpacity>
                 )}
                 keyExtractor={item => item.id}
                 style ={styles.albumFlat}
@@ -146,13 +150,13 @@ const HomeScreen = () => {
                 showsHorizontalScrollIndicator={false}
                 data={artists}
                 renderItem={({ item }) => (
-                  <View style={styles.artistCard}>
+                  <TouchableOpacity style={styles.artistCard}  onPress={() => navigation.navigate('ArtistFrofile',item)}>
                     <Image source={{uri:item.image }} style={styles.artistImage} />
                     <Text style={styles.artistName}>{item.name}</Text>
                     <TouchableOpacity style={styles.followButton}>
                       <Text style={styles.followButtonText}>Follow</Text>
                     </TouchableOpacity>
-                  </View>
+                  </TouchableOpacity>
                 )}
                 keyExtractor={item => item.id}
               />
@@ -161,9 +165,27 @@ const HomeScreen = () => {
         )}
       />
 
-      
+      {selectedTrack && (
+        <TouchableOpacity style={styles.nowPlaying}  onPress={() => navigation.navigate('PlayAudio', selectedTrack)}>
+          <Image
+            source={{uri: selectedTrack.artwork} }
+            style={styles.miniTrackImage}
+          />
+          <View style={styles.miniTrackInfo}>
+            <Text style={styles.miniTrackTitle}>{selectedTrack.title}</Text>
+            <Text style={styles.miniTrackArtist}>{selectedTrack.artist}</Text>
+          </View>
+          <TouchableOpacity>
+            <Icon name="heart" size={20} color="white"  style={{paddingRight:20}}/>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Icon name="play" size={23} color="white" />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
             <Icon name="home" size={30} color="black" />
             <Text style={styles.tabLabel}>Home</Text>
         </TouchableOpacity>
@@ -420,6 +442,35 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: '#666',
   },
+  nowPlaying: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    backgroundColor: 'black'
+  },
+  miniTrackImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 4,
+    backgroundColor: '#eee'
+  },
+  miniTrackInfo: {
+    flex: 1,
+    marginLeft: 12
+  },
+  miniTrackTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'white'
+  },
+  miniTrackArtist: {
+   
+    fontSize: 12,
+    color: 'white'
+  },
+
 });
 
 export default HomeScreen;

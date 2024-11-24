@@ -11,7 +11,10 @@ import {
   Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-export  default function SignUpScreen() {
+import Icon4 from 'react-native-vector-icons/MaterialIcons'
+
+
+export  default function SignUpScreen({navigation}) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -29,8 +32,12 @@ export  default function SignUpScreen() {
             
   
             <View style={styles.formContainer}>
+              <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon4 name="arrow-back-ios" size={20} color="black" />
+              </TouchableOpacity>
               <Text style={styles.formTitle}>Create Account</Text>
-              
+            </View>
               <TextInput
                 style={styles.input}
                 placeholder="Full Name"
@@ -75,6 +82,15 @@ export  default function SignUpScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+    },
+    header:{
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      marginBottom: 80,
+      
+      
+
     },
     logoContainer: {
       alignItems: 'center',
@@ -141,7 +157,8 @@ export  default function SignUpScreen() {
       fontSize: 28,
       fontWeight: 'bold',
       color: '#fff',
-      marginBottom: 80,
+      marginBottom: 3
+      
     },
     input: {
       backgroundColor: 'rgba(255,255,255,0.2)',
