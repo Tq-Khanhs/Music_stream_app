@@ -4,44 +4,56 @@ import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
-import { useState,useEffect } from 'react'
-import { artists } from '../data/artists';
-import { tracks } from '../data/tracks';
-import { albums } from '../data/albums';
+import { useState,useEffect,useCallback } from 'react'
 import { LogBox } from 'react-native';
+import { useAudio } from './AudioContext';
+import MiniPlayer from './MiniPlayer'
 
 LogBox.ignoreLogs([
   'VirtualizedLists should never be nested inside plain ScrollViews',
 ]);
 export default function ProfileScreen( {route,navigation}) {
-    const [selectedTrack, setSelectedTrack] = useState("");
-    const [showFullAbout, setShowFullAbout] = useState(false);
-    const [selectedArtist, setSelectedArtist] = useState(route.params);
-    const [chartTracks, setChartTracks] = useState([]);
-    const otherArtistAlbums = albums.filter(album => album.artist !== artists[0].name);
+  const [albums, setAlbums] = useState([]);
+  const [tracks, setTracks] = useState([]);
+  const [showFullAbout, setShowFullAbout] = useState(false);
+  
 
-    const [artistAlbums, setartistAlbums] = useState([]);
-    useEffect(() => {
-      
-      
-      const fetchedTracks = selectedArtist.tracksId.map(id => {
-        const track = tracks.find(track => track.id === id);
-        return track;
-      }).filter(track => track !== undefined);
-      setChartTracks(fetchedTracks);
+  const selectedArtist = route.params;
+  const { playTrack } = useAudio();
 
-      const fetchedAlbums = selectedArtist.albumsId.map(id => {
-        const album = albums.find(album => album.id === id);
-        return album;
-      }).filter(album => album !== undefined);
-      setartistAlbums(fetchedAlbums);
+  const fetchData = useCallback(async () => {
+    try {
+      const [albumsResponse, tracksResponse] = await Promise.all([
+        fetch('https://my.api.mockaroo.com/albums.json?key=5b678c00'),
+        fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00')
+      ]);
 
-      
-    }, [selectedArtist]);
+      const albumsData = await albumsResponse.json();
+      const tracksData = await tracksResponse.json();
 
-    const handleTrackPress = (track) => {
-      setSelectedTrack(track);
-    };
+      setAlbums(albumsData);
+      setTracks(tracksData);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      // setError('Failed to load data. Please try again.');
+    } finally {
+      // setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const artistAlbums = albums.filter(album => selectedArtist.albumsId.includes(album.id));
+  const artistTracks = tracks.filter(track => selectedArtist.tracksId.includes(track.id));
+  const otherArtistAlbums = albums.filter(album => album.artist !== selectedArtist.name);
+
+  const handleTrackPress = useCallback((track) => {
+    playTrack(track);
+  }, [playTrack]);
+
+    
 
 
     const aboutText = "Do in cupidatat aute et in officia aute laboris est Lorem est nisi dolor consequat voluptate duis irure. Veniam quis amet irure cillum elit aliquip sunt cillum cillum do aliqua voluptate ad non magna elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
@@ -95,7 +107,7 @@ export default function ProfileScreen( {route,navigation}) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Popular</Text>
           <FlatList
-          data={chartTracks}
+          data={artistTracks}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity 
@@ -164,7 +176,7 @@ export default function ProfileScreen( {route,navigation}) {
             data={otherArtistAlbums}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.artistItem}>
+              <TouchableOpacity style={styles.artistItem} onPress={() => navigation.navigate('Album',item)}>
                 <Image source={{uri: item.image }} style={styles.artistImage} />
                 <Text style={styles.artistName}>{item.name}</Text>
                 <Text style={styles.artistName}>{item.artist}</Text>
@@ -176,24 +188,7 @@ export default function ProfileScreen( {route,navigation}) {
           />
         </View>
       </ScrollView>
-      {selectedTrack && (
-        <View style={styles.nowPlaying}>
-          <Image
-            source={{uri: selectedTrack.artwork} }
-            style={styles.miniTrackImage}
-          />
-          <View style={styles.miniTrackInfo}>
-            <Text style={styles.miniTrackTitle}>{selectedTrack.title}</Text>
-            <Text style={styles.miniTrackArtist}>{selectedTrack.artist}</Text>
-          </View>
-          <TouchableOpacity>
-            <Icon name="heart" size={20} color="white"  style={{paddingRight:20}}/>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Icon name="play" size={23} color="white" />
-          </TouchableOpacity>
-        </View>
-      )}
+      <MiniPlayer navigation={navigation} />
 
      
       <View style={styles.tabBar}>
@@ -361,7 +356,8 @@ const styles = StyleSheet.create({
   },
   artistItem: {
     width: 140,
-    alignItems: 'center'
+    alignItems: 'center',
+    marginLeft: -10
   },
   artistImage: {
     width: 120,

@@ -1,34 +1,49 @@
 import React from 'react'
 import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet,FlatList } from 'react-native'
-import  { useState, useEffect } from 'react';
+import  { useState, useEffect ,useCallback} from 'react';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
-import { charts } from '../data/charts';
-import { tracks } from '../data/tracks';
+
+import { useAudio } from './AudioContext';
+import MiniPlayer from './MiniPlayer'
+
 
 
 
 export default function AlbumListTrack({ route, navigation }) {
-    const [selectedTrack, setSelectedTrack] = useState("");
-    const [selectedAlbum, setSelectedAlbums] = useState(route.params);
-    const [albumTracks, setAlbumTracks] = useState([]);
-    useEffect(() => {
-      
-      
-      const fetchedTracks = selectedAlbum.tracksId.map(id => {
-        const track = tracks.find(track => track.id === id);
-        return track;
-      }).filter(track => track !== undefined);
-      
-      
-      setAlbumTracks(fetchedTracks);
-    }, [selectedAlbum]);
+   
+    const selectedAlbum= route.params;
+    
+    const [tracks, setTracks] = useState([]);
 
+    const { playTrack } = useAudio();
     const handleTrackPress = (track) => {
-        setSelectedTrack(track);
+      playTrack(track);
     };
+
+    const fetchData = useCallback(async () => {
+      try {
+        const tracksResponse = await fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00');
+        const tracksData = await tracksResponse.json();
+  
+        setTracks(tracksData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError('Failed to load data. Please try again.');
+      } finally {
+        
+      }
+    }, []);
+  
+    useEffect(() => {
+      fetchData();
+    }, [fetchData]);
+    const albumTracks = tracks.filter(track => selectedAlbum.tracksId.includes(track.id));
+
+    
+      
   return (
     <SafeAreaView style={styles.container}>
       
@@ -112,24 +127,7 @@ export default function AlbumListTrack({ route, navigation }) {
         />
       
 
-      {selectedTrack && (
-        <View style={styles.nowPlaying}>
-          <Image
-            source={{uri: selectedTrack.artwork} }
-            style={styles.miniTrackImage}
-          />
-          <View style={styles.miniTrackInfo}>
-            <Text style={styles.miniTrackTitle}>{selectedTrack.title}</Text>
-            <Text style={styles.miniTrackArtist}>{selectedTrack.artist}</Text>
-          </View>
-          <TouchableOpacity>
-            <Icon name="heart" size={20} color="white"  style={{paddingRight:20}}/>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Icon name="play" size={23} color="white" />
-          </TouchableOpacity>
-        </View>
-      )}
+      <MiniPlayer navigation={navigation} />
 
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem}>

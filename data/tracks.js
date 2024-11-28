@@ -19,7 +19,7 @@ export const tracks =  [
     },
     {
         id:3,
-        url:"https://vtrqwqpftgtlbphukqlc.supabase.co/storage/v1/object/sign/tracks/YourPoison.mp3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ0cmFja3MvWW91clBvaXNvbi5tcDMiLCJpYXQiOjE3MzIxMjY3MDcsImV4cCI6MTc2MzY2MjcwN30.R_PvqT9BHBCR4XWLAgi6hR7HOFaLwRYPKhX9sHC5LiM&t=2024-11-20T18%3A17%3A27.763Z",
+        url:"https://vtrqwqpftgtlbphukqlc.supabase.co/storage/v1/object/public/tracks/ShouldersofGiants.mp3?t=2024-11-26T11%3A20%3A26.216Z",
         title: "Shoulders of Giants",
         artist: "Halvorsen",
         artwork: "https://linkstorage.linkfire.com/medialinks/images/f5db7f16-38c9-4ac3-a250-4419036f03dc/artwork-440x440.jpg",
@@ -37,7 +37,7 @@ export const tracks =  [
     },
     {
         id:5,
-        url:"https://vtrqwqpftgtlbphukqlc.supabase.co/storage/v1/object/sign/tracks/YourPoison.mp3?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ0cmFja3MvWW91clBvaXNvbi5tcDMiLCJpYXQiOjE3MzIxMjcwMDYsImV4cCI6MTc2MzY2MzAwNn0.Fr7LkxBBpHA2uwTvVfIXvsP-9ScxapFz2C0cU6hktWs&t=2024-11-20T18%3A22%3A26.247Z",
+        url:"https://vtrqwqpftgtlbphukqlc.supabase.co/storage/v1/object/public/tracks/Home.mp3?t=2024-11-26T11%3A24%3A56.691Z",
         title: "Home",
         artist: "Robbie Mendez",
         artwork: "https://linkstorage.linkfire.com/medialinks/images/282dfe6a-88b4-4503-b805-56774cb265dc/artwork-440x440.jpg",

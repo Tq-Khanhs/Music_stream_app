@@ -3,20 +3,56 @@ import {View,Text,Image,FlatList,TouchableOpacity,StyleSheet,SafeAreaView,TextIn
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
-import { artists } from '../data/artists';
-import { albums } from '../data/albums';
-import { charts } from '../data/charts';
-import { tracks } from '../data/tracks';
-import { useState,useEffect } from 'react'
+import { useState, useEffect } from 'react';
+import { useAudio } from './AudioContext';
+import MiniPlayer from './MiniPlayer'
 
 
-const HomeScreen = ({navigation}) => {
-  const [selectedTrack, setSelectedTrack] = useState("");
+const HomeScreen = ({navigation,route}) => {
+  const [artists, setArtists] = useState([]);
+  const [albums, setAlbums] = useState([]);
+  const [charts, setCharts] = useState([]);
+  const [tracks, setTracks] = useState([]);
+  
+  const user =route.params;
+  const { playTrack } = useAudio();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [artistsResponse, albumsResponse, chartsResponse, tracksResponse] = await Promise.all([
+          fetch('https://my.api.mockaroo.com/artists.json?key=5b678c00'),
+          fetch('https://my.api.mockaroo.com/albums.json?key=5b678c00'),
+          fetch('https://my.api.mockaroo.com/charts.json?key=5b678c00'),
+          fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00')
+        ]);
+
+        const artistsData = await artistsResponse.json();
+        const albumsData = await albumsResponse.json();
+        const chartsData = await chartsResponse.json();
+        const tracksData = await tracksResponse.json();
+
+        setArtists(artistsData);
+        setAlbums(albumsData);
+        setCharts(chartsData);
+        setTracks(tracksData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        // setError('Failed to load data. Please try again.');
+      } finally {
+        // setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+  const handleTrackPress = (track) => {
+    playTrack(track);
+  };
+  
+
  
   const suggestionTracks = tracks.slice(0, 3);
-  const handleTrackPress = (track) => {
-    setSelectedTrack(track);
-  };
+  
   return (
     <SafeAreaView style={styles.container}>
     
@@ -33,7 +69,7 @@ const HomeScreen = ({navigation}) => {
           <View style={styles.userContainer}>
             <Icon name="bell" size={30} color="black" />
             <Image
-            source={require('../assets/Avatar 3.png')}
+            source={{uri: user.image}}  
             style={styles.avatar}
           />
           </View>
@@ -45,7 +81,7 @@ const HomeScreen = ({navigation}) => {
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <Text style={styles.greeting}>Good morning</Text>
-          <Text style={styles.username}>Ashley Scott</Text>
+          <Text style={styles.username}>{user.name}</Text>
         </View>
         
       </View>
@@ -127,7 +163,7 @@ const HomeScreen = ({navigation}) => {
                 renderItem={({ item }) => (
                   <TouchableOpacity style={styles.albumCard} onPress={() => navigation.navigate('Album',item)}>
                     <Image source={{uri:item.image}} style={styles.albumImage} />
-                    <Text style={styles.albumTitle}>{item.title}</Text>
+                    <Text style={styles.albumTitle}>{item.name}</Text>
                     <Text style={styles.albumArtist}>{item.artist}</Text>
                   </TouchableOpacity>
                 )}
@@ -165,24 +201,8 @@ const HomeScreen = ({navigation}) => {
         )}
       />
 
-      {selectedTrack && (
-        <TouchableOpacity style={styles.nowPlaying}  onPress={() => navigation.navigate('PlayAudio', selectedTrack)}>
-          <Image
-            source={{uri: selectedTrack.artwork} }
-            style={styles.miniTrackImage}
-          />
-          <View style={styles.miniTrackInfo}>
-            <Text style={styles.miniTrackTitle}>{selectedTrack.title}</Text>
-            <Text style={styles.miniTrackArtist}>{selectedTrack.artist}</Text>
-          </View>
-          <TouchableOpacity>
-            <Icon name="heart" size={20} color="white"  style={{paddingRight:20}}/>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Icon name="play" size={23} color="white" />
-          </TouchableOpacity>
-        </TouchableOpacity>
-      )}
+      
+      <MiniPlayer navigation={navigation} />
 
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>

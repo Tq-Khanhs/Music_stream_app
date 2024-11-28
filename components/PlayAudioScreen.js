@@ -1,18 +1,51 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { View, Text, Image, TouchableOpacity, SafeAreaView, StyleSheet,ImageBackground,Dimensions} from 'react-native'
 import Icon from 'react-native-vector-icons/Feather'
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
-
-
+import { useAudio } from './AudioContext';
+import Slider from '@react-native-community/slider'
 
 
 export default function PlayaudioScreen({route,navigation}) {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const track = route.params;
+  
+  const { currentTrack, isPlaying, togglePlayPause, sound } = useAudio()
+  const [position, setPosition] = useState(0)
+  const [duration, setDuration] = useState(0)
+
+  useEffect(() => {
+    if (sound) {
+      const updateStatus = async () => {
+        const status = await sound.getStatusAsync()
+        if (status.isLoaded) {
+          setPosition(status.positionMillis)
+          setDuration(status.durationMillis)
+        }
+      }
+      updateStatus()
+      const interval = setInterval(updateStatus, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [sound])
+
+  const onSliderValueChange = async (value) => {
+    if (sound) {
+      await sound.setPositionAsync(value)
+    }
+  }
+
+  const formatTime = (millis) => {
+    const minutes = Math.floor(millis / 60000)
+    const seconds = ((millis % 60000) / 1000).toFixed(0)
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+  }
+
+  if (!currentTrack) return null
+
+  
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
-        source={{uri:track.artwork}}
+        source={{uri:currentTrack.artwork}}
         style={styles.background}
       >
         <View style={styles.header}>
@@ -25,14 +58,23 @@ export default function PlayaudioScreen({route,navigation}) {
         </View>
         <View style={styles.content}>
           <View style={styles.trackInfo}>
-            <Text style={styles.title}>{track.title}</Text>
-            <Text style={styles.artist}>{track.artist}</Text>
+            <Text style={styles.title}>{currentTrack.title}</Text>
+            <Text style={styles.artist}>{currentTrack.artist}</Text>
           </View>
           <View style={styles.progressContainer}>
-            <Image source={require('../assets/Group 4.png')} style={styles.waveform} />
+          <Slider
+              style={styles.progressBar}
+              minimumValue={0}
+              maximumValue={duration}
+              value={position}
+              onSlidingComplete={onSliderValueChange}
+              minimumTrackTintColor="#FFFFFF"
+              maximumTrackTintColor="#000000"
+              thumbTintColor="#FFFFFF"
+            />
             <View style={styles.timeContainer}>
-              <Text style={styles.timeText}>0:00</Text>
-              <Text style={styles.timeText}>{track.duration}</Text>
+            <Text style={styles.timeText}>{formatTime(position)}</Text>
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
             </View>
           </View>
           <View style={styles.controls}>
@@ -42,7 +84,7 @@ export default function PlayaudioScreen({route,navigation}) {
             <TouchableOpacity>
               <Icon name="skip-back" size={32} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.playButton} onPress={() => setIsPlaying(!isPlaying)}>
+            <TouchableOpacity style={styles.playButton} onPress={togglePlayPause}>
               <Icon name={isPlaying ? "pause" : "play"} size={32} color="black" />
             </TouchableOpacity>
             <TouchableOpacity>

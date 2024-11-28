@@ -33,6 +33,7 @@ import Album from './components/AlbumListTrack'
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CardStyleInterpolators } from '@react-navigation/stack';
+import { AudioProvider } from './components/AudioContext';
 
 
 const Stack = createNativeStackNavigator();
@@ -41,6 +42,7 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
+    <AudioProvider>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Welcome">
         <Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false }}/>
@@ -53,6 +55,7 @@ export default function App() {
         <Stack.Screen name="Album" component={Album} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
+    </AudioProvider>
   );
 }
 
