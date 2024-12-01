@@ -1,39 +1,18 @@
-// import Welcome from "./components/Welcome";
-// import HomeScreen from "./components/HomeScreen";
-// import Audiolist from './components/AudiolistScreen'
-// import PlayAudio from './components/PlayAudioScreen'
-// import ArtistFrofile from './components/ArtistFrofileScreen'
-// import Login from './components/Login'
-// import SignUp from './components/SignUpScreen'
-
-
-// export default function App() {
-//   return (
-//     // <Login></Login>
-//     <HomeScreen></HomeScreen>
-//     // <Audiolist></Audiolist>
-//     // <PlayAudio></PlayAudio>
-//     // <ArtistFrofile></ArtistFrofile>
-//     // <Login></Login>
-//     // <SignUp></SignUp>
-    
-//   );
-// }
-
 import React from 'react';
-import Welcome from './components/Welcome';
-import HomeScreen from './components/HomeScreen';
-import Audiolist from './components/AudiolistScreen';
-import PlayAudio from './components/PlayAudioScreen';
-import ArtistFrofile from './components/ArtistFrofileScreen';
-import Login from './components/Login';
-import SignUp from './components/SignUpScreen';
-import Album from './components/AlbumListTrack'
-
+import Welcome from './screens/Welcome';
+import HomeScreen from './screens/HomeScreen';
+import Audiolist from './screens/AudiolistScreen';
+import PlayAudio from './screens/PlayAudioScreen';
+import ArtistFrofile from './screens/ArtistFrofileScreen';
+import Login from './screens/Login';
+import SignUp from './screens/SignUpScreen';
+import Album from './screens/AlbumListTrack'
+import SearchScreen from './screens/SearchResult';
+import { UserProvider } from './context/UserContext';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CardStyleInterpolators } from '@react-navigation/stack';
-import { AudioProvider } from './components/AudioContext';
+import { AudioProvider } from './context/AudioContext';
 
 
 const Stack = createNativeStackNavigator();
@@ -42,6 +21,7 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
+    <UserProvider>
     <AudioProvider>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Welcome">
@@ -53,9 +33,11 @@ export default function App() {
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }}/>
         <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }}/>
         <Stack.Screen name="Album" component={Album} options={{ headerShown: false }}/>
+        <Stack.Screen name="SearchScreen" component={SearchScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
     </AudioProvider>
+    </UserProvider>
   );
 }
 

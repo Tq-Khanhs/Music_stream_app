@@ -4,17 +4,18 @@ import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import { useState, useEffect } from 'react';
-import { useAudio } from './AudioContext';
-import MiniPlayer from './MiniPlayer'
+import { useUser } from '../context/UserContext';
+import { useAudio } from '../context/AudioContext';
+import MiniPlayer from '../components/MiniPlayer'
 
 
-const HomeScreen = ({navigation,route}) => {
+const HomeScreen = ({navigation}) => {
   const [artists, setArtists] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [charts, setCharts] = useState([]);
   const [tracks, setTracks] = useState([]);
+  const { user } = useUser();
   
-  const user =route.params;
   const { playTrack } = useAudio();
   useEffect(() => {
     const fetchData = async () => {
@@ -50,7 +51,7 @@ const HomeScreen = ({navigation,route}) => {
   };
   
 
- 
+  console.log(tracks)
   const suggestionTracks = tracks.slice(0, 3);
   
   return (
@@ -209,7 +210,7 @@ const HomeScreen = ({navigation,route}) => {
             <Icon name="home" size={30} color="black" />
             <Text style={styles.tabLabel}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SearchScreen')}>
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>

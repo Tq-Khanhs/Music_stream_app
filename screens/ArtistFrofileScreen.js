@@ -6,8 +6,8 @@ import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
 import { useState,useEffect,useCallback } from 'react'
 import { LogBox } from 'react-native';
-import { useAudio } from './AudioContext';
-import MiniPlayer from './MiniPlayer'
+import { useAudio } from '../context/AudioContext';
+import MiniPlayer from '../components/MiniPlayer'
 
 LogBox.ignoreLogs([
   'VirtualizedLists should never be nested inside plain ScrollViews',
@@ -192,11 +192,11 @@ export default function ProfileScreen( {route,navigation}) {
 
      
       <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
             <Icon name="home" size={30} color="black" />
             <Text style={styles.tabLabel}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SearchScreen')}>
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>

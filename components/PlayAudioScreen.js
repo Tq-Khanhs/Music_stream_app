@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react'
 import { View, Text, Image, TouchableOpacity, SafeAreaView, StyleSheet,ImageBackground,Dimensions} from 'react-native'
 import Icon from 'react-native-vector-icons/Feather'
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
-import { useAudio } from './AudioContext';
+import { useAudio } from '../context/AudioContext';
 import Slider from '@react-native-community/slider'
 
 

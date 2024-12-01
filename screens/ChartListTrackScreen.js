@@ -1,23 +1,19 @@
 import React from 'react'
 import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet,FlatList } from 'react-native'
-import  { useState, useEffect ,useCallback} from 'react';
+import  { useState, useEffect,useCallback } from 'react';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
 
-import { useAudio } from './AudioContext';
-import MiniPlayer from './MiniPlayer'
+import { useAudio } from '../context/AudioContext';
+import MiniPlayer from '../components/MiniPlayer'
 
 
-
-
-export default function AlbumListTrack({ route, navigation }) {
-   
-    const selectedAlbum= route.params;
+export default function AudiolistScreen({ route, navigation }) {
     
+    const selectedChart = route.params;
     const [tracks, setTracks] = useState([]);
-
     const { playTrack } = useAudio();
     const handleTrackPress = (track) => {
       playTrack(track);
@@ -40,10 +36,7 @@ export default function AlbumListTrack({ route, navigation }) {
     useEffect(() => {
       fetchData();
     }, [fetchData]);
-    const albumTracks = tracks.filter(track => selectedAlbum.tracksId.includes(track.id));
-
-    
-      
+    const chartTracks = tracks.filter(track => selectedChart.trackIds.includes(track.id));  
   return (
     <SafeAreaView style={styles.container}>
       
@@ -58,17 +51,17 @@ export default function AlbumListTrack({ route, navigation }) {
 
         <View style={styles.playlistInfo}>
           <Image
-            source={{uri:selectedAlbum.image}}
+            source={{uri:selectedChart.coverImage}}
             style={styles.playlistCover}
           />
           <View style={styles.playlist}>
-          <Text style={styles.playlistTitle}>{selectedAlbum.name}</Text>
+          <Text style={styles.playlistTitle}>{selectedChart.title}</Text>
           <View style={styles.playlistStats}>
             <Icon name="heart" size={20} color="blue" />
-            <Text style={styles.statsText}>{selectedAlbum.likes}</Text>
-            <Text style={styles.statsText}>• {selectedAlbum.duration}</Text>
+            <Text style={styles.statsText}>{selectedChart.likes}</Text>
+            <Text style={styles.statsText}>• {selectedChart.duration}</Text>
           </View>
-          
+          <Text style={styles.playlistDescription}>{selectedChart.description}</Text>
 
           </View>
           
@@ -98,7 +91,7 @@ export default function AlbumListTrack({ route, navigation }) {
         </View>
         
         <FlatList
-          data={albumTracks}
+          data={chartTracks}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity 
@@ -126,15 +119,15 @@ export default function AlbumListTrack({ route, navigation }) {
           contentContainerStyle={styles.trackList}
         />
       
-
       <MiniPlayer navigation={navigation} />
+      
 
       <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
             <Icon name="home" size={30} color="black" />
             <Text style={styles.tabLabel}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SearchScreen')}>
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>
@@ -172,8 +165,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 50,
-    justifyContent: 'center',
-    
+    justifyContent: 'center'
    
   },
   
@@ -181,20 +173,12 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 8,
-    backgroundColor: '#6b46c1',
-    marginLeft:20
-    
-    
-    
-  },
-  playlist:{
-        width: "50%"
+    backgroundColor: '#6b46c1'
   },
   playlistTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 16,
-    height: 80
+    marginTop: 16
   },
   playlistStats: {
     flexDirection: 'row',
@@ -237,8 +221,7 @@ const styles = StyleSheet.create({
   },
   trackInfo: {
     flex: 1,
-    marginLeft: 12,
-    
+    marginLeft: 12
   },
   trackTitle: {
     fontSize: 16,

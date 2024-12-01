@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image,SafeAreaView,KeyboardAvoidingView,Platform} from'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
-
+import { useUser } from '../context/UserContext';
 
 
 export default function LoginScreen({navigation}) {
@@ -10,6 +10,7 @@ export default function LoginScreen({navigation}) {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const { setUser } = useUser();
 
   const handleLogin = async () => {
     setEmailError('');
@@ -36,7 +37,8 @@ export default function LoginScreen({navigation}) {
 
         if (user) {
             if (user.password === password) {
-                navigation.navigate('Home',user);
+                setUser(user);
+                navigation.navigate('Home');
             } else {
                 setPasswordError('Sai mật khẩu');
                 setPassword('');

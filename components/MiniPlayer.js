@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { useAudio } from './AudioContext';
+import { useAudio } from '../context/AudioContext';
 import Icon from 'react-native-vector-icons/Feather';
 
 const MiniPlayer = ({ navigation }) => {
