@@ -1,8 +1,13 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 
 const LibraryScreen = () => {
+  const [activeTab, setActiveTab] = useState('Playlists');
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [followedArtists, setFollowedArtists] = useState([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+
   const tabs = ['Playlists', 'New tag', 'Songs', 'Albums', 'Artists'];
   
   // Sample data modified to match the image
@@ -69,47 +74,97 @@ const LibraryScreen = () => {
     },
   ];
 
-  const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      {item.type === 'Artist' ? (
-        <View style={styles.artistItem}>
-          <Image source={item.image} style={styles.artistImage} />
-          <View style={styles.artistInfo}>
-            <Text style={styles.artistName}>{item.name}</Text>
-            <Text style={styles.artistFollowers}>{item.followers} Followers</Text>
+  const handleTabPress = (tab) => {
+    setActiveTab(tab);
+    // Có thể thêm logic filter items theo tab
+  };
+
+  const toggleLike = (songId) => {
+    setLikedSongs(currentLikedSongs => 
+      currentLikedSongs.includes(songId)
+        ? currentLikedSongs.filter(id => id !== songId)
+        : [...currentLikedSongs, songId]
+    );
+  };
+
+  const toggleFollow = (artistId) => {
+    setFollowedArtists(currentFollowedArtists => 
+      currentFollowedArtists.includes(artistId)
+        ? currentFollowedArtists.filter(id => id !== artistId)
+        : [...currentFollowedArtists, artistId]
+    );
+  };
+
+  const handlePlaylistPress = (playlist) => {
+    setSelectedPlaylist(playlist);
+    Alert.alert(
+      'Playlist Selected', 
+      `Opened playlist: ${playlist.title}`,
+      [{ text: 'OK', onPress: () => {} }]
+    );
+  };
+
+  const renderItem = ({ item }) => {
+    const isLiked = likedSongs.includes(item.id);
+    const isFollowed = followedArtists.includes(item.id);
+
+    return (
+      <View style={styles.itemContainer}>
+        {item.type === 'Artist' ? (
+          <View style={styles.artistItem}>
+            <Image source={item.image} style={styles.artistImage} />
+            <View style={styles.artistInfo}>
+              <Text style={styles.artistName}>{item.name}</Text>
+              <Text style={styles.artistFollowers}>{item.followers} Followers</Text>
+            </View>
+            <TouchableOpacity 
+              style={[
+                styles.followButton, 
+                isFollowed && styles.followedButton
+              ]}
+              onPress={() => toggleFollow(item.id)}
+            >
+              <Text style={styles.followButtonText}>
+                {isFollowed ? 'Unfollow' : 'Follow'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.followButton}>
-            <Text style={styles.followButtonText}>Follow</Text>
+        ) : item.type === 'Playlist' ? (
+          <TouchableOpacity 
+            style={styles.songItem}
+            onPress={() => handlePlaylistPress(item)}
+          >
+            <Image source={item.image} style={styles.songImage} />
+            <View style={styles.songInfo}>
+              <Text style={styles.songTitle}>{item.title}</Text>
+              <Text style={styles.songArtist}>{item.artist} • {item.songs}</Text>
+            </View>
+            <Feather name="chevron-right" size={24} color="#666" />
           </TouchableOpacity>
-        </View>
-      ) : item.type === 'Playlist' ? (
-        <TouchableOpacity style={styles.songItem}>
-          <Image source={item.image} style={styles.songImage} />
-          <View style={styles.songInfo}>
-            <Text style={styles.songTitle}>{item.title}</Text>
-            <Text style={styles.songArtist}>{item.artist} • {item.songs}</Text>
-          </View>
-          <Feather name="chevron-right" size={24} color="#666" />
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.songItem}>
-          <Image source={item.image} style={styles.songImage} />
-          <View style={styles.songInfo}>
-            <Text style={styles.songTitle}>{item.title}</Text>
-            <View style={styles.songDetails}>
-              <Text style={styles.songArtist}>{item.artist}</Text>
-              <View style={styles.statsContainer}>
-                <Text style={styles.songStats}>{item.plays} • {item.duration}</Text>
+        ) : (
+          <View style={styles.songItem}>
+            <Image source={item.image} style={styles.songImage} />
+            <View style={styles.songInfo}>
+              <Text style={styles.songTitle}>{item.title}</Text>
+              <View style={styles.songDetails}>
+                <Text style={styles.songArtist}>{item.artist}</Text>
+                <View style={styles.statsContainer}>
+                  <Text style={styles.songStats}>{item.plays} • {item.duration}</Text>
+                </View>
               </View>
             </View>
+            <TouchableOpacity onPress={() => toggleLike(item.id)}>
+              <Ionicons 
+                name={isLiked ? "heart" : "heart-outline"} 
+                size={24} 
+                color={isLiked ? "#FF0000" : "#1DB954"} 
+              />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity>
-            <Ionicons name="heart-outline" size={24} color="#1DB954" />
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
+        )}
+      </View>
+    );
+  };
 
   const renderTabs = () => (
     <ScrollView 
@@ -120,19 +175,35 @@ const LibraryScreen = () => {
       {tabs.map((tab, index) => (
         <TouchableOpacity
           key={index}
-          style={styles.tab}
+          style={[
+            styles.tab, 
+            activeTab === tab && styles.activeTab
+          ]}
+          onPress={() => handleTabPress(tab)}
         >
-          <Text style={styles.tabText}>{tab}</Text>
+          <Text style={[
+            styles.tabText, 
+            activeTab === tab && styles.activeTabText
+          ]}>{tab}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
   );
 
+  const handleFooterNavigation = (screen) => {
+    // Thêm logic điều hướng giữa các màn hình
+    Alert.alert(
+      'Navigation', 
+      `Navigating to ${screen}`,
+      [{ text: 'OK', onPress: () => {} }]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Library</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => Alert.alert('Search', 'Search functionality')}>
           <Ionicons name="search-outline" size={24} color="#000" />
         </TouchableOpacity>
       </View>
@@ -145,22 +216,31 @@ const LibraryScreen = () => {
         showsVerticalScrollIndicator={false}
       />
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerItem}>
-          <Ionicons name="home-outline" size={24} color="#666" />
-          <Text style={styles.footerText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Ionicons name="search-outline" size={24} color="#666" />
-          <Text style={styles.footerText}>Search</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Ionicons name="newspaper-outline" size={24} color="#666" />
-          <Text style={styles.footerText}>Feed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.footerItem, styles.activeFooterItem]}>
-          <Ionicons name="library-outline" size={24} color="#1DB954" />
-          <Text style={[styles.footerText, styles.activeFooterText]}>Library</Text>
-        </TouchableOpacity>
+        {['Home', 'Search', 'Feed', 'Library'].map((screen, index) => (
+          <TouchableOpacity 
+            key={screen}
+            style={[
+              styles.footerItem, 
+              screen === 'Library' && styles.activeFooterItem
+            ]}
+            onPress={() => handleFooterNavigation(screen)}
+          >
+            <Ionicons 
+              name={
+                screen === 'Home' ? 'home-outline' :
+                screen === 'Search' ? 'search-outline' :
+                screen === 'Feed' ? 'newspaper-outline' :
+                'library-outline'
+              }
+              size={24} 
+              color={screen === 'Library' ? '#1DB954' : '#666'} 
+            />
+            <Text style={[
+              styles.footerText, 
+              screen === 'Library' && styles.activeFooterText
+            ]}>{screen}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
@@ -289,6 +369,15 @@ const styles = StyleSheet.create({
   },
   activeFooterText: {
     color: '#1DB954',
+  },
+  activeTab: {
+    backgroundColor: '#000',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  followedButton: {
+    backgroundColor: '#666',
   },
 });
 
