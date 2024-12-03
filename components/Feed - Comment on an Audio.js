@@ -1,47 +1,71 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, TextInput, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, FlatList, TextInput, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import axios from 'axios';
+
+const API_BASE_URL = 'https://674f243ebb559617b26e3327.mockapi.io/api';
 
 // Import hình ảnh avatar
 import avatarSource from './assets/img9/Avatar8.png';
 
-const CommentSection = () => {   // State quản lý comments và input
-  const comments = [
-    { id: 1, user: 'Sally Rooney', comment: 'Do this cu!', time: '5m' },
-    { id: 2, user: 'Jason', comment: 'Minim magna ex', time: '48m' },
-    { id: 3, user: 'Michael Key', comment: 'Deserunt offcia consectetur adipi', time: '40m' },
-    { id: 4, user: 'Liam Pham', comment: 'Commodo', time: '48m' },
-    { id: 5, user: 'Kiran Glaucus', comment: 'Esse consequat cilium ex', time: '40m' },
-  ];
-
+const CommentSection = () => {
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [likedComments, setLikedComments] = useState([]);
 
-  // Import hình ảnh bài đăng
+  // Import hình ảnh avatar và bài đăng
+  const avatarSource = require('./assets/img9/Avatar8.png');
   const postImage = require('./assets/img9/Track1.png');
 
+  useEffect(() => {
+    loadComments();
+  }, []);
+
+  const loadComments = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/comments`);
+      setComments(response.data);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load comments');
+    }
+  };
+
   // Hàm gửi comment mới
-  const sendComment = () => {
+  const sendComment = async () => {
     if (newComment.trim() === '') return;
 
-    const newCommentObj = {
-      id: comments.length + 1,
-      user: 'You', // Thay bằng tên người dùng thực tế
-      comment: newComment,
-      time: 'Just now'
-    };
+    try {
+      const commentData = {
+        user: 'You',
+        comment: newComment,
+        time: 'Just now'
+      };
 
-    setComments([...comments, newCommentObj]);
-    setNewComment('');
+      const response = await axios.post(`${API_BASE_URL}/comments`, commentData);
+      setComments([...comments, response.data]);
+      setNewComment('');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to send comment');
+    }
   };
 
   // Hàm like comment
-  const toggleLikeComment = (commentId) => {
-    setLikedComments(current => 
-      current.includes(commentId)
-        ? current.filter(id => id !== commentId)
-        : [...current, commentId]
-    );
+  const toggleLikeComment = async (commentId) => {
+    try {
+      const isCurrentlyLiked = likedComments.includes(commentId);
+      
+      await axios.put(`${API_BASE_URL}/comments/${commentId}`, {
+        liked: !isCurrentlyLiked
+      });
+
+      setLikedComments(current => 
+        isCurrentlyLiked
+          ? current.filter(id => id !== commentId)
+          : [...current, commentId]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update like status');
+    }
   };
 
   // Hàm chia sẻ bài đăng
@@ -58,6 +82,8 @@ const CommentSection = () => {   // State quản lý comments và input
       Alert.alert('Error', error.message);
     }
   };
+
+  
 
 // Render từng comment
 const renderComment = ({ item }) => (
@@ -156,7 +182,7 @@ return (
       </View>
     </View>
   </KeyboardAvoidingView>
- );
+);
 };
 
 const FeedCommentScreen = () => {

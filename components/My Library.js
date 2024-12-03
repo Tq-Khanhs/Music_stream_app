@@ -1,78 +1,35 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
+import axios from 'axios';
 
 const LibraryScreen = () => {
   const [activeTab, setActiveTab] = useState('Playlists');
+  const [libraryItems, setLibraryItems] = useState([]);
   const [likedSongs, setLikedSongs] = useState([]);
   const [followedArtists, setFollowedArtists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const tabs = ['Playlists', 'New tag', 'Songs', 'Albums', 'Artists'];
   
-  // Sample data modified to match the image
-  const libraryItems = [
-    {
-      id: 1,
-      type: 'Artist',
-      name: 'Mer Watson',
-      followers: '1,234K',
-      image: require('./assets/img10/Merwatson.png'),
-    },
-    {
-      id: 2,
-      type: 'Song',
-      title: 'FLOWER',
-      artist: 'Jessica Gonzalez',
-      plays: '2.1M',
-      duration: '3:36',
-      image: require('./assets/img10/Flower.png'),
-    },
-    {
-      id: 3,
-      type: 'Song',
-      title: 'Shape of You',
-      artist: 'Anthony Taylor',
-      plays: '68M',
-      duration: '03:35',
-      image: require('./assets/img10/Shapeofyou.png'),
-    },
-    {
-      id: 4,
-      type: 'Playlist',
-      title: 'Blinding Lights',
-      artist: 'Ashley Scott',
-      songs: '4 songs',
-      image: require('./assets/img10/BlindingLights.png'),
-    },
-    {
-      id: 5,
-      type: 'Song',
-      title: 'Levitating',
-      artist: 'Anthony Taylor',
-      plays: '9M',
-      duration: '07:48',
-      image: require('./assets/img10/Levitating.png'),
-    },
-    {
-      id: 6,
-      type: 'Song',
-      title: 'Astronaut in the Ocean',
-      artist: 'Pedro Moreno',
-      plays: '2.2M',
-      duration: '3:36',
-      image: require('./assets/img10/Astronautintheocean.png'),
-    },
-    {
-      id: 7,
-      type: 'Song',
-      title: 'Dynamite',
-      artist: 'Elena Jimenez',
-      plays: '10M',
-      duration: '06:22',
-      image: require('./assets/img10/Dynamite.png'),
-    },
-  ];
+  useEffect(() => {
+    fetchLibraryItems();
+  }, []);
+
+  const fetchLibraryItems = async () => {
+    try {
+      const response = await axios.get('https://my.api.mockaroo.com/library.json?key=8e25acb0');
+      setLibraryItems(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to fetch library items');
+      setLoading(false);
+      console.error(err);
+    }
+  };
+
 
   const handleTabPress = (tab) => {
     setActiveTab(tab);
@@ -165,7 +122,6 @@ const LibraryScreen = () => {
       </View>
     );
   };
-
   const renderTabs = () => (
     <ScrollView 
       horizontal 
@@ -198,6 +154,25 @@ const LibraryScreen = () => {
       [{ text: 'OK', onPress: () => {} }]
     );
   };
+  
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1DB954" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity onPress={fetchLibraryItems}>
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -378,6 +353,27 @@ const styles = StyleSheet.create({
   },
   followedButton: {
     backgroundColor: '#666',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  retryText: {
+    color: '#1DB954',
+    fontSize: 16,
+    marginTop: 10,
   },
 });
 

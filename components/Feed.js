@@ -1,55 +1,32 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, Share } from 'react-native';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 
 const FeedScreen = () => {
+  const [feedPosts, setFeedPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [reposts, setReposts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const feedPosts = [
-    {
-      id: 1,
-      user: {
-        name: 'Jessica Gonzalez',
-        image: require('./assets/image8/AvatarGirl.png'),
-        verified: true
-      },
-      timeAgo: '3d',
-      track: {
-        title: 'FLOWER',
-        artist: 'Jessica Gonzalez',
-        image: require('./assets/image8/Track1.png'),
-        plays: '125',
-        duration: '05:15'
-      },
-      interactions: {
-        likes: 20,
-        comments: 3,
-        reposts: 1
+  useEffect(() => {
+    fetchFeedPosts();
+  }, []);
+
+  const fetchFeedPosts = async () => {
+    try {
+      const response = await fetch('https://my.api.mockaroo.com/feed.json?key=8e25acb0');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    },
-    {
-      id: 2,
-      user: {
-        name: 'William King',
-        image: require('./assets/image8/AvatarBoy.png'),
-        verified: true
-      },
-      timeAgo: '5d',
-      track: {
-        title: 'Me',
-        artist: 'William King',
-        image: require('./assets/image8/Track2.png'),
-        plays: '245',
-        duration: '05:15'
-      },
-      interactions: {
-        likes: 45,
-        comments: 9,
-        reposts: 2
-      }
+      const data = await response.json();
+      setFeedPosts(data);
+      setIsLoading(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch feed posts');
+      setIsLoading(false);
     }
-  ];
+  };
+
 
   const toggleLike = (postId) => {
     setLikedPosts(currentLikedPosts => 
@@ -165,7 +142,10 @@ const FeedScreen = () => {
         {/* User Info */}
         <View style={styles.userInfo}>
           <View style={styles.userInfoLeft}>
-            <Image source={post.user.image} style={styles.userAvatar} />
+            <Image 
+              source={{ uri: post.user.avatar }} 
+              style={styles.userAvatar} 
+            />
             <View style={styles.postInfo}>
               <View style={styles.nameContainer}>
                 <Text style={styles.userName}>{post.user.name}</Text>
@@ -173,7 +153,7 @@ const FeedScreen = () => {
                   <Ionicons name="checkmark-circle" size={14} color="#1DA1F2" style={styles.verifiedIcon} />
                 )}
               </View>
-              <Text style={styles.postTime}>Posted a track • {post.timeAgo}</Text>
+              <Text style={styles.postTime}>Posted a track • {post.timePosted}</Text>
             </View>
           </View>
           <TouchableOpacity onPress={() => handleMoreOptions(post)}>
@@ -187,7 +167,10 @@ const FeedScreen = () => {
           style={styles.trackCard}
           onPress={() => handleTrackPress(post.track)}
         >
-          <Image source={post.track.image} style={styles.trackImage} />
+          <Image 
+            source={{ uri: post.track.image }} 
+            style={styles.trackImage} 
+          />
           <View style={styles.trackInfo}>
             <Text style={styles.trackTitle}>{post.track.title}</Text>
             <Text style={styles.trackArtist}>{post.track.artist}</Text>
@@ -217,32 +200,6 @@ const FeedScreen = () => {
             </Text>
           </View>
           
-          <View style={styles.interactionGroup}>
-            <TouchableOpacity 
-              style={styles.interactionButton}
-              onPress={() => handleCommentPress(post)}
-            >
-              <Ionicons name="chatbubble-outline" size={20} color="#666" />
-            </TouchableOpacity>
-            <Text style={styles.interactionCount}>{post.interactions.comments}</Text>
-          </View>
-          
-          <View style={styles.interactionGroup}>
-            <TouchableOpacity 
-              style={styles.interactionButton}
-              onPress={() => toggleRepost(post.id)}
-            >
-              <Ionicons 
-                name="repeat-outline" 
-                size={22} 
-                color={isReposted ? "#1DA1F2" : "#666"} 
-              />
-            </TouchableOpacity>
-            <Text style={styles.interactionCount}>
-              {post.interactions.reposts + (isReposted ? 1 : 0)}
-            </Text>
-          </View>
-          
           <TouchableOpacity 
             style={styles.interactionButton}
             onPress={() => handleMoreOptions(post)}
@@ -266,12 +223,18 @@ const FeedScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {feedPosts.map(post => renderFeedItem(post))}
-      </ScrollView>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Text>Loading...</Text>
+        </View>
+      ) : (
+        <ScrollView 
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          {feedPosts.map(post => renderFeedItem(post))}
+        </ScrollView>
+      )}
 
       {/* Footer */}
       <View style={styles.footer}>
@@ -453,6 +416,11 @@ const styles = StyleSheet.create({
   },
   activeFooterText: {
     color: '#1DA1F2',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

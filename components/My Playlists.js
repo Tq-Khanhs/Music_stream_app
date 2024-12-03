@@ -1,29 +1,34 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 const PlaylistScreen = () => {
   // State to manage playlists
-  const [playlists, setPlaylists] = useState([
-    {
-      id: '1',
-      title: 'Ipsum sit nulla',
-      artist: 'Ashley Scott',
-      songs: '12 songs',
-      image: require('./assets/img11/Image 110.png')
-    },
-    {
-      id: '2',
-      title: 'Occaecat aliq',
-      artist: 'Jose Garcia',
-      songs: '4 songs',
-      image: require('./assets/img11/Image 111.png')
-    }
-  ]);
+  const [playlists, setPlaylists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-// Hook for navigation
-const navigation = useNavigation();
+  // Hook for navigation
+  const navigation = useNavigation();
+
+  // Fetch playlists from API
+  useEffect(() => {
+    const fetchPlaylists = async () => {
+      try {
+        const response = await axios.get('https://my.api.mockaroo.com/playlist.json?key=8e25acb0');
+        setPlaylists(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError(err);
+        setLoading(false);
+        Alert.alert('Error', 'Failed to load playlists');
+      }
+    };
+
+    fetchPlaylists();
+  }, []);
 
 // Function to handle back navigation
 const handleBackPress = () => {
@@ -71,18 +76,43 @@ const renderPlaylistItem = ({ item }) => (
     style={styles.playlistItem} 
     onPress={() => handlePlaylistPress(item)}
   >
-    <Image source={item.image} style={styles.playlistImage} />
+    <Image 
+      source={{ uri: item.image }} 
+      style={styles.playlistImage} 
+      defaultSource={require('./assets/img11/default-playlist.png')}
+    />
     <View style={styles.playlistInfo}>
       <Text style={styles.playlistTitle}>{item.title}</Text>
       <View style={styles.playlistDetails}>
         <Text style={styles.playlistArtist}>{item.artist}</Text>
         <Text style={styles.bulletPoint}> • </Text>
-        <Text style={styles.songCount}>{item.songs}</Text>
+        <Text style={styles.songCount}>{item.songs} songs</Text>
       </View>
     </View>
     <Feather name="chevron-right" size={24} color="#666" />
   </TouchableOpacity>
 );
+
+// Render loading state
+if (loading) {
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#1DB954" />
+    </View>
+  );
+}
+
+// Render error state
+if (error) {
+  return (
+    <View style={styles.errorContainer}>
+      <Text style={styles.errorText}>Failed to load playlists</Text>
+      <TouchableOpacity onPress={() => fetchPlaylists()} style={styles.retryButton}>
+        <Text>Retry</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 return (
   <View style={styles.container}>
@@ -103,7 +133,7 @@ return (
       <FlatList
         data={playlists}
         renderItem={renderPlaylistItem}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -252,6 +282,27 @@ const styles = StyleSheet.create({
   },
   activeFooterText: {
     color: '#1DB954',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+    marginBottom: 20,
+  },
+  retryButton: {
+    padding: 10,
+    backgroundColor: '#1DB954',
+    borderRadius: 5,
   },
 });
 
