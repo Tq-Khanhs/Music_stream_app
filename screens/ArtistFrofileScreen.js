@@ -58,8 +58,8 @@ export default function ProfileScreen( {route,navigation}) {
   
   if (isAlbumsLoading || isTracksLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading...</Text>
+      <SafeAreaView style={styles.containerLoad}>
+          <ActivityIndicator size="large" color="#6200EE" />
       </SafeAreaView>
     );
   }
@@ -312,6 +312,12 @@ const styles = StyleSheet.create({
     width:83
     
 
+  },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
   },
   playButton: {
     width: 60,

@@ -1,5 +1,5 @@
 import React ,{useState,useCallback,useEffect}from 'react';
-import {View,Text,Image,FlatList,TouchableOpacity,StyleSheet,SafeAreaView,TextInput,Alert } from 'react-native';
+import {View,Text,Image,FlatList,TouchableOpacity,StyleSheet,SafeAreaView,TextInput,Alert,ActivityIndicator,  } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
@@ -21,7 +21,7 @@ const HomeScreen = ({navigation}) => {
   const [searchText, setSearchText] = useState('');
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
-
+  console.log(albums)
   const [followedArtists, setFollowedArtists] = useState(user.likedArtist);
 
   useEffect(() => {
@@ -67,8 +67,8 @@ const HomeScreen = ({navigation}) => {
 
   if (isArtistsLoading || isAlbumsLoading || isChartsLoading || isTracksLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading...</Text>
+      <SafeAreaView style={styles.containerLoad}>
+        <ActivityIndicator size="large" color="#6200EE" />
       </SafeAreaView>
     );
   }
@@ -314,6 +314,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -418,6 +424,7 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20,
   },
+  
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',

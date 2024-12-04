@@ -6,16 +6,16 @@ export const apiSlice = createApi({
   endpoints: (builder) => ({
     
     getArtists: builder.query({
-      query: () => 'https://my.api.mockaroo.com/artists.json?key=5b678c00',
+      query: () => 'https://my.api.mockaroo.com/artists.json?key=0ec824e0',
     }),
     getAlbums: builder.query({
-      query: () => 'https://my.api.mockaroo.com/albums.json?key=5b678c00',
+      query: () => 'https://my.api.mockaroo.com/albums.json?key=0ec824e0',
     }),
     getCharts: builder.query({
-      query: () => 'https://my.api.mockaroo.com/charts.json?key=5b678c00',
+      query: () => 'https://my.api.mockaroo.com/charts.json?key=0ec824e0',
     }),
     getTracks: builder.query({
-      query: () => 'https://my.api.mockaroo.com/tracks.json?key=5b678c00',
+      query: () => 'https://my.api.mockaroo.com/tracks.json?key=0ec824e0',
     }),
    
     fetchUsers: builder.query({

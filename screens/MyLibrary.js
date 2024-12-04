@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator,SafeAreaView } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Feather';
+import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
+import Icon3 from 'react-native-vector-icons/AntDesign'
 
 
-const LibraryScreen = () => {
+const LibraryScreen = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('Playlists');
   const [libraryItems, setLibraryItems] = useState([]);
   const [likedSongs, setLikedSongs] = useState([]);
@@ -164,9 +167,9 @@ const LibraryScreen = () => {
   
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1DB954" />
-      </View>
+      <SafeAreaView style={styles.containerLoad}>
+          <ActivityIndicator size="large" color="#6200EE" />
+      </SafeAreaView>
     );
   }
 
@@ -235,6 +238,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '600',
+  },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
   },
   tabsContainer: {
     paddingHorizontal: 16,

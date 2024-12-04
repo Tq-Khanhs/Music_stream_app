@@ -22,7 +22,9 @@ import { AudioProvider } from './context/AudioContext';
 import { store } from './store';
 import { Provider } from 'react-redux';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { LogBox } from 'react-native';
 
+LogBox.ignoreAllLogs(true);
 const Stack = createNativeStackNavigator();
 
 

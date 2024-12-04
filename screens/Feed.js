@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, Share } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, Share,ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Feather';
+import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
+import Icon3 from 'react-native-vector-icons/AntDesign'
+import Icon4 from 'react-native-vector-icons/MaterialIcons'
+import { useNavigation } from '@react-navigation/native';
 
 const FeedScreen = () => {
+   const navigation = useNavigation();
   const [feedPosts, setFeedPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [reposts, setReposts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
 
   useEffect(() => {
     fetchFeedPosts();
@@ -19,15 +26,36 @@ const FeedScreen = () => {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      setFeedPosts(data);
+      // Validate data before setting state
+      const validPosts = data.filter(post => 
+        post && 
+        post.id && 
+        post.user && 
+        post.user.name && 
+        post.track
+      );
+      setFeedPosts(validPosts);
       setIsLoading(false);
     } catch (error) {
+      console.error('Fetch error:', error);
       Alert.alert('Error', 'Failed to fetch feed posts');
       setIsLoading(false);
+      setFeedPosts([]); 
     }
   };
-
-
+  
+ const handleCommentPress = (post) => {
+  navigation.navigate('FeedComment', { 
+    screen: 'CommentSection',  // If using nested navigation
+    params: {
+      post: post,  // Ensure this is a complete post object
+      trackImage: post.track?.image,  
+      trackTitle: post.track?.title,
+      trackArtist: post.track?.artist
+    }
+  });
+};
+ 
   const toggleLike = (postId) => {
     setLikedPosts(currentLikedPosts => 
       currentLikedPosts.includes(postId)
@@ -104,16 +132,6 @@ const FeedScreen = () => {
       `You reported the post by ${post.user.name} for ${reason}`
     );
   };
-
-  const handleCommentPress = (post) => {
-    // Mở màn hình bình luận
-    Alert.alert(
-      'Comments', 
-      `View comments for ${post.track.title}`,
-      [{ text: 'OK', onPress: () => {} }]
-    );
-  };
-
   const handleTrackPress = (track) => {
     // Logic phát nhạc
     Alert.alert(
@@ -122,7 +140,6 @@ const FeedScreen = () => {
       [{ text: 'OK', onPress: () => {} }]
     );
   };
-
   const handleFooterNavigation = (screen) => {
     // Điều hướng giữa các màn hình
     Alert.alert(
@@ -131,9 +148,10 @@ const FeedScreen = () => {
       [{ text: 'OK', onPress: () => {} }]
     );
   };
-
-
   const renderFeedItem = (post) => {
+    if (!post || !post.user) {
+    return null; // Skip rendering this item if data is incomplete
+  }
     const isLiked = likedPosts.includes(post.id);
     const isReposted = reposts.includes(post.id);
 
@@ -148,11 +166,13 @@ const FeedScreen = () => {
             />
             <View style={styles.postInfo}>
               <View style={styles.nameContainer}>
-                <Text style={styles.userName}>{post.user.name}</Text>
-                {post.user.verified && (
-                  <Ionicons name="checkmark-circle" size={14} color="#1DA1F2" style={styles.verifiedIcon} />
-                )}
-              </View>
+             <Text style={styles.userName}>
+                 {post.user?.name || 'Unknown User'}
+                </Text>
+              {post.user?.verified && (
+               <Ionicons name="checkmark-circle" size={14} color="#1DA1F2" style={styles.verifiedIcon} />
+              )}
+           </View>
               <Text style={styles.postTime}>Posted a track • {post.timePosted}</Text>
             </View>
           </View>
@@ -199,6 +219,23 @@ const FeedScreen = () => {
               {post.interactions.likes + (isLiked ? 1 : 0)}
             </Text>
           </View>
+
+          {/* Add Comment Button */}
+        <View style={styles.interactionGroup}>
+          <TouchableOpacity 
+            style={styles.interactionButton}
+            onPress={() => handleCommentPress(post)}
+          >
+            <Ionicons 
+              name="chatbubble-outline" 
+              size={22} 
+              color="#666" 
+            />
+          </TouchableOpacity>
+          <Text style={styles.interactionCount}>
+            {post.interactions.comments || 0}
+          </Text>
+        </View>
           
           <TouchableOpacity 
             style={styles.interactionButton}
@@ -215,60 +252,63 @@ const FeedScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Feed</Text>
-        <TouchableOpacity 
-          style={styles.headerButton}
-          onPress={() => Alert.alert('Live', 'Open live streaming')}
-        >
-          <Ionicons name="tv-outline" size={24} color="#333" />
-        </TouchableOpacity>
+        <TouchableOpacity>
+            <Icon4 name="mobile-screen-share" size={25} color="black" />
+          </TouchableOpacity>
       </View>
 
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <Text>Loading...</Text>
-        </View>
-      ) : (
-        <ScrollView 
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          {feedPosts.map(post => renderFeedItem(post))}
-        </ScrollView>
-      )}
+          {isLoading ? (
+      <SafeAreaView style={styles.containerLoad}>
+      <ActivityIndicator size="large" color="#6200EE" />
+    </SafeAreaView>
+    ) : feedPosts.length === 0 ? (
+      <View style={styles.loadingContainer}>
+        <Text>No posts available</Text>
+      </View>
+    ) : (
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {feedPosts.map(post => renderFeedItem(post))}
+      </ScrollView>
+    )}
 
       {/* Footer */}
-      <View style={styles.footer}>
-        {['Home', 'Search', 'Feed', 'Library'].map((screen) => (
-          <TouchableOpacity 
-            key={screen}
-            style={styles.footerItem}
-            onPress={() => handleFooterNavigation(screen)}
-          >
-            <Ionicons 
-              name={
-                screen === 'Home' ? 'home-outline' :
-                screen === 'Search' ? 'search' :
-                screen === 'Feed' ? 'tv-outline' :
-                'library-outline'
-              }
-              size={24} 
-              color={screen === 'Feed' ? '#1DA1F2' : '#666'} 
-            />
-            <Text style={[
-              styles.footerText, 
-              screen === 'Feed' && styles.activeFooterText
-            ]}>{screen}</Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.tabBar}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
+            <Icon name="home" size={30} color="black" />
+            <Text style={styles.tabLabel}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SearchScreen')}>
+            <Icon name="search" size={30} color="black" />
+            <Text style={styles.tabLabel}>Search</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
+            <Icon3 name="switcher" size={30} color="black" />
+            <Text style={styles.tabLabel}>Feed</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem}>
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
+          <Text style={styles.tabLabel}>Library</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
+export default FeedScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    marginTop: 13
+  },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
   },
   header: {
     flexDirection: 'row',
@@ -278,6 +318,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
+    
   },
   headerTitle: {
     fontSize: 20,
@@ -387,7 +428,7 @@ const styles = StyleSheet.create({
   interactionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 24,
+    marginRight: 16,
   },
   interactionButton: {
     marginRight: 4,
@@ -417,11 +458,24 @@ const styles = StyleSheet.create({
   activeFooterText: {
     color: '#1DA1F2',
   },
-  loadingContainer: {
+  loadingContainer: { 
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  tabItem: {
+    alignItems: 'center',
+  },
+  tabLabel: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#666',
+  },
 });
-
-export default FeedScreen;

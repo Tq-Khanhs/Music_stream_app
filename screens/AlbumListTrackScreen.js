@@ -50,8 +50,8 @@ export default function AlbumListTrack({ route, navigation }) {
 
     if ( isTracksLoading) {
       return (
-        <SafeAreaView style={styles.container}>
-          <Text>Loading...</Text>
+        <SafeAreaView style={styles.containerLoad}>
+          <ActivityIndicator size="large" color="#6200EE" />
         </SafeAreaView>
       );
     }
@@ -176,6 +176,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff'
+  },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
   },
   header: {
     flexDirection: 'row',

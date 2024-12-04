@@ -17,10 +17,9 @@ export default function AudiolistScreen({ route, navigation }) {
     
     if ( isTracksLoading) {
       return (
-        <SafeAreaView style={styles.container}>
-          <Text>Loading...</Text>
-        </SafeAreaView>
-      );
+        <SafeAreaView style={styles.containerLoad}>
+          <ActivityIndicator size="large" color="#6200EE" />
+        </SafeAreaView>      );
     }
     
     const handleTrackPress = (track) => {
@@ -252,6 +251,12 @@ const styles = StyleSheet.create({
   miniTrackInfo: {
     flex: 1,
     marginLeft: 12
+  },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
   },
   miniTrackTitle: {
     fontSize: 14,

@@ -22,9 +22,12 @@ const SearchScreen = ({navigation,route}) => {
   const { user, setUser } = useUser()
 
 
-  if(route.params){
-    setSearchText(route.params);
-  }
+  useEffect(() => {
+    if (route.params) {
+      setSearchText(route.params);
+    }
+  }, [route.params]);
+
   const [followedArtists, setFollowedArtists] = useState(user.likedArtist);
 
   useEffect(() => {
@@ -77,25 +80,29 @@ const SearchScreen = ({navigation,route}) => {
   }
 
   const searchResults = useMemo(() => {
+    if (!searchText.trim()) {
+      return [];
+    }
+    console.log(searchText);
     const keyword = searchText.toLowerCase();
-  
-    const filteredAlbums = albums.filter(
+
+    const filteredAlbums = albums?.filter(
       (album) =>
-        album.name.toLowerCase().includes(keyword) ||
-        album.artist.toLowerCase().includes(keyword)
-    );
-  
-    const filteredTracks = tracks.filter((track) =>
-      track.title.toLowerCase().includes(keyword) ||
-      track.artist.toLowerCase().includes(keyword)
-    );
-  
-    const filteredArtists = artists.filter((artist) =>
-      artist.name.toLowerCase().includes(keyword)
-    );
-  
+        album?.name?.toLowerCase().includes(keyword) ||
+        album?.artist?.toLowerCase().includes(keyword)
+    ) || [];
+
+    const filteredTracks = tracks?.filter((track) =>
+      track?.title?.toLowerCase().includes(keyword) ||
+      track?.artist?.toLowerCase().includes(keyword)
+    ) || [];
+
+    const filteredArtists = artists?.filter((artist) =>
+      artist?.name?.toLowerCase().includes(keyword)
+    ) || [];
+
     let results = [];
-  
+
     if (activeCategory === 'All' || activeCategory === 'Albums') {
       results.push(...filteredAlbums.map((item) => ({ ...item, type: "album" })));
     }
@@ -105,9 +112,10 @@ const SearchScreen = ({navigation,route}) => {
     if (activeCategory === 'All' || activeCategory === 'Artists') {
       results.push(...filteredArtists.map((item) => ({ ...item, type: "artist" })));
     }
-  
+
     return results;
-  }, [searchText, activeCategory]); 
+  }, [searchText, activeCategory, albums, tracks, artists]);
+
   
   const handleTrackPress = (track) => {
     playTrack(track);
