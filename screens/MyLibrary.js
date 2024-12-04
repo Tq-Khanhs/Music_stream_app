@@ -197,32 +197,23 @@ const LibraryScreen = () => {
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
       />
-      <View style={styles.footer}>
-        {['Home', 'Search', 'Feed', 'Library'].map((screen, index) => (
-          <TouchableOpacity 
-            key={screen}
-            style={[
-              styles.footerItem, 
-              screen === 'Library' && styles.activeFooterItem
-            ]}
-            onPress={() => handleFooterNavigation(screen)}
-          >
-            <Ionicons 
-              name={
-                screen === 'Home' ? 'home-outline' :
-                screen === 'Search' ? 'search-outline' :
-                screen === 'Feed' ? 'newspaper-outline' :
-                'library-outline'
-              }
-              size={24} 
-              color={screen === 'Library' ? '#1DB954' : '#666'} 
-            />
-            <Text style={[
-              styles.footerText, 
-              screen === 'Library' && styles.activeFooterText
-            ]}>{screen}</Text>
-          </TouchableOpacity>
-        ))}
+       <View style={styles.tabBar}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
+            <Icon name="home" size={30} color="black" />
+            <Text style={styles.tabLabel}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SearchScreen')}>
+            <Icon name="search" size={30} color="black" />
+            <Text style={styles.tabLabel}>Search</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
+            <Icon3 name="switcher" size={30} color="black" />
+            <Text style={styles.tabLabel}>Feed</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem}>
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
+          <Text style={styles.tabLabel}>Library</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -381,6 +372,21 @@ const styles = StyleSheet.create({
     color: '#1DB954',
     fontSize: 16,
     marginTop: 10,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  tabItem: {
+    alignItems: 'center',
+  },
+  tabLabel: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#666',
   },
 });
 

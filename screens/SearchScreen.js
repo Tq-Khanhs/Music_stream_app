@@ -6,17 +6,67 @@ import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import MiniPlayer from '../components/MiniPlayer'
 import { useAudio } from '../context/AudioContext';
-import { useGetArtistsQuery, useGetAlbumsQuery, useGetTracksQuery } from '../apiSlice';
+import { useUser } from '../context/UserContext';
+
+import { useGetArtistsQuery, useGetAlbumsQuery, useGetTracksQuery, useUpdateUserMutation } from '../apiSlice';
 const SearchScreen = ({navigation,route}) => {
   const { data: artists = [], isLoading: isArtistsLoading } = useGetArtistsQuery();
   const { data: albums = [], isLoading: isAlbumsLoading } = useGetAlbumsQuery();
   const { data: tracks = [], isLoading: isTracksLoading } = useGetTracksQuery();
-  const [searchText, setSearchText] = useState( route.params);
+  const [updateUser] = useUpdateUserMutation();
+  const [searchText, setSearchText] = useState('');
   const categories = ['All', 'Tracks', 'Albums', 'Artists'];
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchResult, setSearchResult] = useState([]);
   const { playTrack } = useAudio();
-  
+  const { user, setUser } = useUser()
+
+
+  if(route.params){
+    setSearchText(route.params);
+  }
+  const [followedArtists, setFollowedArtists] = useState(user.likedArtist);
+
+  useEffect(() => {
+    setFollowedArtists(user.likedArtist);
+  }, [user.likedArtist]);
+
+  const getFollowStatus = useCallback((artistId) => {
+    return followedArtists.includes(artistId);
+  }, [followedArtists]);
+
+
+  const handlePressFollow = useCallback(async (artistId) => {
+    const isFollowing = followedArtists.includes(artistId);
+    let updatedLikedArtists;
+
+    if (isFollowing) {
+      updatedLikedArtists = followedArtists.filter((id) => id !== artistId);
+    } else {
+      updatedLikedArtists = [...followedArtists, artistId];
+    }
+
+    setFollowedArtists(updatedLikedArtists);
+    setUser((prevUser) => ({
+      ...prevUser,
+      likedArtist: updatedLikedArtists,
+    }));
+
+    try {
+      await updateUser({
+        id: user.id,
+        likedArtist: updatedLikedArtists,
+      });
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      
+      setFollowedArtists(user.likedArtist);
+      setUser((prevUser) => ({
+        ...prevUser,
+        likedArtist: user.likedArtist,
+      }));
+    }
+  }, [followedArtists, setUser, updateUser, user.id, user.likedArtist]);
 
   if (isArtistsLoading || isAlbumsLoading  || isTracksLoading) {
     return (
@@ -110,12 +160,14 @@ const SearchScreen = ({navigation,route}) => {
         </View>
       </View>
       
-      <TouchableOpacity 
-        style={styles.followButton}
-        activeOpacity={0.7}
-        onPress={() => console.log('Follow pressed')}
+      
+      <TouchableOpacity
+        style={[styles.followButton, getFollowStatus(item.id) && styles.followedButton]}
+        onPress={() => handlePressFollow(item.id)} 
       >
-        <Text style={styles.followButtonText}>Follow</Text>
+        <Text style={[styles.followButtonText, getFollowStatus(item.id) && styles.followedButtonText]}>
+            {getFollowStatus(item.id)?"Followed": "Follow"}  
+        </Text>
       </TouchableOpacity>
     </TouchableOpacity>
         );
@@ -353,6 +405,22 @@ const styles = StyleSheet.create({
     color: '#1DA1F2',
     fontSize: 13,
     fontWeight: '500',
+  },
+  
+  followedButtonText:{
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'black'
+
+  },
+  followedButton:{
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 1,
+    backgroundColor: '#d3d3d3',
+   
+
   },
   songInfo: {
     flexDirection: 'column',

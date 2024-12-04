@@ -9,6 +9,8 @@ import { LogBox } from 'react-native';
 import { useAudio } from '../context/AudioContext';
 import MiniPlayer from '../components/MiniPlayer'
 import { useGetAlbumsQuery, useGetTracksQuery } from '../apiSlice';
+import { useUser } from '../context/UserContext';
+import { useUpdateUserMutation } from '../apiSlice';
 
 LogBox.ignoreLogs([
   'VirtualizedLists should never be nested inside plain ScrollViews',
@@ -18,10 +20,42 @@ export default function ProfileScreen( {route,navigation}) {
   const [showFullAbout, setShowFullAbout] = useState(false);
   const { data: albums = [], isLoading: isAlbumsLoading } = useGetAlbumsQuery();
   const { data: tracks = [], isLoading: isTracksLoading } = useGetTracksQuery();
-
+  const { user, setUser } = useUser();
+  const [updateUser] = useUpdateUserMutation();
   const selectedArtist = route.params;
   const { playTrack } = useAudio();
+  const [isLiked, setIsLiked] = useState(false);
+ 
+  useEffect(() => {
+    if (selectedArtist) { 
+      setIsLiked(user.likedArtist.includes(selectedArtist.id));
+    }
+  }, [user.likedArtist, selectedArtist]);
+    
+  const handlePressFollow = useCallback(() => {
+    const updatedLikedArtists = isLiked
+      ? user.likedArtist.filter(id => id !== selectedArtist.id)
+      : [...user.likedArtist, selectedArtist.id];
 
+    setIsLiked(!isLiked);
+    setUser(prevUser => ({
+      ...prevUser,
+      likedArtist: updatedLikedArtists
+    }));
+
+    updateUser({
+      id: user.id,
+      likedArtist: updatedLikedArtists
+    }).catch(error => {
+      console.error('Failed to update user:', error);
+      setIsLiked(isLiked);
+      setUser(prevUser => ({
+        ...prevUser,
+        likedArtist: user.likedArtist
+      }));
+    });
+  }, [isLiked, selectedArtist, user, setUser, updateUser]);
+  
   if (isAlbumsLoading || isTracksLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -65,9 +99,14 @@ export default function ProfileScreen( {route,navigation}) {
           <Text style={styles.followersCount}>{selectedArtist.followers} Followers</Text>
           <View style={styles.profileActions}>
             <View style= {styles.buttonContainer}>
-            <TouchableOpacity style={styles.followButton}>
-              <Text style={styles.followButtonText}>Follow</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.followButton, isLiked && styles.followedButton]}
+                onPress={handlePressFollow}
+              >
+                <Text style={[styles.followButtonText, isLiked && styles.followedButtonText]}>
+                  {isLiked ? "Followed" : "Follow"}
+                </Text>
+              </TouchableOpacity>
             <TouchableOpacity>
                 <Icon2 name="dots-horizontal" size={20} color="black" />
             </TouchableOpacity>
@@ -246,17 +285,33 @@ const styles = StyleSheet.create({
     gap: 20
   },
   followButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: '#000',
     borderRadius: 20,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    height: 36
+    width:83,
     
   },
   followButtonText: {
-    color: 'black',
-    fontWeight: '600'
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    paddingHorizontal: 7
+  },
+  followedButtonText:{
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'black'
+
+  },
+  followedButton:{
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#d3d3d3',
+    borderRadius: 20,
+    width:83
+    
+
   },
   playButton: {
     width: 60,

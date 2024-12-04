@@ -272,7 +272,7 @@ const HomeScreen = ({navigation}) => {
                     >
                       <Text style={[styles.followButtonText, getFollowStatus(item.id) && styles.followedButtonText]}>
                         {getFollowStatus(item.id)?"Followed": "Follow"}  
-                        {console.log(getFollowStatus(item.id))}
+                        
                       </Text>
                     </TouchableOpacity>
                    </TouchableOpacity>

@@ -1,10 +1,48 @@
-import React from 'react';
+import React,{useState,useEffect,useCallback} from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAudio } from '../context/AudioContext';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/AntDesign';
+import { useUser } from '../context/UserContext';
+import { useUpdateUserMutation } from '../apiSlice';
+
 
 const MiniPlayer = ({ navigation }) => {
-  const { currentTrack, isPlaying, togglePlayPause } = useAudio();
+  const { currentTrack, isPlaying, togglePlayPause } = useAudio(); // Added useAudio hook call
+  const { user, setUser } = useUser();
+  const [updateUser] = useUpdateUserMutation();
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    if (currentTrack) { 
+      setIsLiked(user.likedTrack.includes(currentTrack.id));
+    }
+  }, [user.likedTrack, currentTrack]);
+
+  const handleLikePress = useCallback(() => {
+    if (!currentTrack) return;
+
+    const updatedLikedTracks = isLiked
+      ? user.likedTrack.filter(id => id !== currentTrack.id)
+      : [...user.likedTrack, currentTrack.id];
+
+    setIsLiked(!isLiked);
+    setUser(prevUser => ({
+      ...prevUser,
+      likedTrack: updatedLikedTracks
+    }));
+
+    updateUser({
+      id: user.id,
+      likedTrack: updatedLikedTracks
+    }).catch(error => {
+      console.error('Failed to update user:', error);
+      setIsLiked(isLiked);
+      setUser(prevUser => ({
+        ...prevUser,
+        likedTrack: user.likedTrack
+      }));
+    });
+  }, [isLiked, currentTrack, user, setUser, updateUser]);
 
   if (!currentTrack) return null;
 
@@ -18,8 +56,10 @@ const MiniPlayer = ({ navigation }) => {
             <Text style={styles.miniTrackTitle}>{currentTrack.title}</Text>
             <Text style={styles.miniTrackArtist}>{currentTrack.artist}</Text>
           </View>
-          <TouchableOpacity>
-            <Icon name="heart" size={20} color="white"  style={{paddingRight:20}}/>
+          <TouchableOpacity onPress={handleLikePress}>
+            <Icon name={isLiked ? "heart" : "hearto"} 
+                  size={20} 
+                  color={isLiked ? "red" : "white"}   style={{paddingRight:20}}/>
           </TouchableOpacity>
           <TouchableOpacity onPress={togglePlayPause}>
             <Icon name={isPlaying ? "pause" : "play"} size={23} color="white" />
