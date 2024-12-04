@@ -8,34 +8,25 @@ import Icon4 from 'react-native-vector-icons/MaterialIcons'
 
 import { useAudio } from '../context/AudioContext';
 import MiniPlayer from '../components/MiniPlayer'
-
+import { useGetTracksQuery } from '../apiSlice';
 
 export default function AudiolistScreen({ route, navigation }) {
-    
+    const { data: tracks = [], isLoading: isTracksLoading } = useGetTracksQuery();
     const selectedChart = route.params;
-    const [tracks, setTracks] = useState([]);
     const { playTrack } = useAudio();
+    
+    if ( isTracksLoading) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <Text>Loading...</Text>
+        </SafeAreaView>
+      );
+    }
+    
     const handleTrackPress = (track) => {
       playTrack(track);
     };
 
-    const fetchData = useCallback(async () => {
-      try {
-        const tracksResponse = await fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00');
-        const tracksData = await tracksResponse.json();
-  
-        setTracks(tracksData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Failed to load data. Please try again.');
-      } finally {
-        
-      }
-    }, []);
-  
-    useEffect(() => {
-      fetchData();
-    }, [fetchData]);
     const chartTracks = tracks.filter(track => selectedChart.trackIds.includes(track.id));  
   return (
     <SafeAreaView style={styles.container}>
@@ -131,12 +122,12 @@ export default function AudiolistScreen({ route, navigation }) {
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
             <Icon3 name="switcher" size={30} color="black" />
             <Text style={styles.tabLabel}>Feed</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-            <Icon2 name="music-box-multiple-outline" size={30} color="black" />
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
           <Text style={styles.tabLabel}>Library</Text>
         </TouchableOpacity>
       </View>

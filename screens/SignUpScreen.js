@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView,KeyboardAvoidingView,Platform,Alert} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
+import { useFetchUsersQuery, useCreateUserMutation } from '../apiSlice'
+
+
 
 export default function SignUpScreen({navigation}) {
+  const { data: users = [], isLoading } = useFetchUsersQuery();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-
+  const [createUser] = useCreateUserMutation()
   const validateName = (name) => {
     const nameRegex = /^[A-Z][a-z]*(\s[A-Z][a-z]*)+$/;
     return nameRegex.test(name);
@@ -60,8 +64,7 @@ export default function SignUpScreen({navigation}) {
     if (!isValid) return;
   
     try {
-      const response = await fetch('https://6748bf4a5801f5153592092a.mockapi.io/users');
-      const users = await response.json();
+      
   
       const existingUser = users.find(u => u.email === email);
       if (existingUser) {
@@ -79,24 +82,17 @@ export default function SignUpScreen({navigation}) {
         image: "https://vtrqwqpftgtlbphukqlc.supabase.co/storage/v1/object/public/image/Avatar%203.png?t=2024-11-26T14%3A39%3A24.744Z"
       };
   
-      const createResponse = await fetch('https://6748bf4a5801f5153592092a.mockapi.io/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newUser),
-      });
+      const response = await createUser(newUser).unwrap();
   
-      if (createResponse.ok) {
+      if (response) {
         Alert.alert('Đăng ký thành công', 'Bạn có thể đăng nhập ngay bây giờ');
         navigation.navigate('Login');
-      } else {
-        Alert.alert('Lỗi đăng ký', 'Không thể tạo tài khoản. Vui lòng thử lại sau.');
       }
     } catch (error) {
       console.error('Lỗi đăng ký:', error);
-      Alert.alert('Lỗi đăng ký', 'Đã xảy ra lỗi. Vui lòng thử lại sau.');
+      Alert.alert('Lỗi đăng ký', 'Không thể tạo tài khoản. Vui lòng thử lại sau.');
     }
+
   };
 
   return (
@@ -164,7 +160,7 @@ export default function SignUpScreen({navigation}) {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.forgotPassword} onPress={()=>navigation.navigate('Login')} >
-              <Text style={styles.forgotPasswordText}>Đăng nhập</Text>
+              <Text style={styles.forgotPasswordText}>Log in</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

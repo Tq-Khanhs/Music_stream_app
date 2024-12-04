@@ -8,42 +8,27 @@ import { useState,useEffect,useCallback } from 'react'
 import { LogBox } from 'react-native';
 import { useAudio } from '../context/AudioContext';
 import MiniPlayer from '../components/MiniPlayer'
+import { useGetAlbumsQuery, useGetTracksQuery } from '../apiSlice';
 
 LogBox.ignoreLogs([
   'VirtualizedLists should never be nested inside plain ScrollViews',
 ]);
 export default function ProfileScreen( {route,navigation}) {
-  const [albums, setAlbums] = useState([]);
-  const [tracks, setTracks] = useState([]);
-  const [showFullAbout, setShowFullAbout] = useState(false);
   
+  const [showFullAbout, setShowFullAbout] = useState(false);
+  const { data: albums = [], isLoading: isAlbumsLoading } = useGetAlbumsQuery();
+  const { data: tracks = [], isLoading: isTracksLoading } = useGetTracksQuery();
 
   const selectedArtist = route.params;
   const { playTrack } = useAudio();
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [albumsResponse, tracksResponse] = await Promise.all([
-        fetch('https://my.api.mockaroo.com/albums.json?key=5b678c00'),
-        fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00')
-      ]);
-
-      const albumsData = await albumsResponse.json();
-      const tracksData = await tracksResponse.json();
-
-      setAlbums(albumsData);
-      setTracks(tracksData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      // setError('Failed to load data. Please try again.');
-    } finally {
-      // setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  if (isAlbumsLoading || isTracksLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   const artistAlbums = albums.filter(album => selectedArtist.albumsId.includes(album.id));
   const artistTracks = tracks.filter(track => selectedArtist.tracksId.includes(track.id));
@@ -200,12 +185,12 @@ export default function ProfileScreen( {route,navigation}) {
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
             <Icon3 name="switcher" size={30} color="black" />
             <Text style={styles.tabLabel}>Feed</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-            <Icon2 name="music-box-multiple-outline" size={30} color="black" />
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
           <Text style={styles.tabLabel}>Library</Text>
         </TouchableOpacity>
       </View>

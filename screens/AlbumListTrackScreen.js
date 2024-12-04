@@ -1,45 +1,60 @@
-import React from 'react'
-import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet,FlatList } from 'react-native'
-import  { useState, useEffect ,useCallback} from 'react';
+import React, {useState,useCallback} from 'react'
+import { View, Text, Image, TouchableOpacity, SafeAreaView, StyleSheet,FlatList } from 'react-native'
+
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
-
 import { useAudio } from '../context/AudioContext';
 import MiniPlayer from '../components/MiniPlayer'
-
-
-
+import { useUser } from '../context/UserContext';
+import { useGetTracksQuery, useUpdateUserMutation } from '../apiSlice';
 
 export default function AlbumListTrack({ route, navigation }) {
-   
+    const { data: tracks = [], isLoading: isTracksLoading } = useGetTracksQuery();
     const selectedAlbum= route.params;
-    
-    const [tracks, setTracks] = useState([]);
-
     const { playTrack } = useAudio();
+    const { user, setUser } = useUser();
+    const [updateUser] = useUpdateUserMutation();
+    const [isLiked, setIsLiked] = useState(user.likedAlbum.includes(selectedAlbum.id));
+
     const handleTrackPress = (track) => {
       playTrack(track);
     };
-
-    const fetchData = useCallback(async () => {
+    const handleLikePress = useCallback(async () => {
+      const updatedLikedAlbums = isLiked
+        ? user.likedAlbum.filter(id => id !== selectedAlbum.id)
+        : [...user.likedAlbum, selectedAlbum.id];
+  
+      setIsLiked(!isLiked);
+      setUser(prevUser => ({
+        ...prevUser,
+        likedAlbum: updatedLikedAlbums
+      }));
+  
       try {
-        const tracksResponse = await fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00');
-        const tracksData = await tracksResponse.json();
-  
-        setTracks(tracksData);
+        await updateUser({
+          id: user.id,
+          likedAlbum: updatedLikedAlbums
+        });
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Failed to load data. Please try again.');
-      } finally {
+        console.error('Failed to update user:', error);
         
+        setIsLiked(isLiked);
+        setUser(prevUser => ({
+          ...prevUser,
+          likedAlbum: user.likedAlbum
+        }));
       }
-    }, []);
-  
-    useEffect(() => {
-      fetchData();
-    }, [fetchData]);
+    }, [isLiked, selectedAlbum.id, user, setUser, updateUser]);
+
+    if ( isTracksLoading) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <Text>Loading...</Text>
+        </SafeAreaView>
+      );
+    }
     const albumTracks = tracks.filter(track => selectedAlbum.tracksId.includes(track.id));
 
     
@@ -76,8 +91,13 @@ export default function AlbumListTrack({ route, navigation }) {
 
         <View style={styles.controls}>
             <View style={styles.button}>
-                <TouchableOpacity>
-                    <Icon name="heart" size={20} color="black" />
+                <TouchableOpacity onPress={handleLikePress}>
+                <Icon3 
+                  name={isLiked ? "heart" : "hearto"} 
+                  size={20} 
+                  color={isLiked ? "red" : "black"} 
+                  
+            />
                 </TouchableOpacity>
                 <TouchableOpacity>
                     <Icon2 name="dots-horizontal" size={20} color="black" />
@@ -128,7 +148,7 @@ export default function AlbumListTrack({ route, navigation }) {
       
 
       <MiniPlayer navigation={navigation} />
-
+      
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
             <Icon name="home" size={30} color="black" />
@@ -138,12 +158,12 @@ export default function AlbumListTrack({ route, navigation }) {
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
             <Icon3 name="switcher" size={30} color="black" />
             <Text style={styles.tabLabel}>Feed</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-            <Icon2 name="music-box-multiple-outline" size={30} color="black" />
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
           <Text style={styles.tabLabel}>Library</Text>
         </TouchableOpacity>
       </View>

@@ -1,4 +1,4 @@
-import React, { useState,useEffect,useMemo } from 'react';
+import React, { useState,useEffect,useMemo, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, TextInput, StyleSheet, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/Feather';
@@ -6,45 +6,25 @@ import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import MiniPlayer from '../components/MiniPlayer'
 import { useAudio } from '../context/AudioContext';
-
-const SearchScreen = ({navigation}) => {
-  const [searchText, setSearchText] = useState('');
-  
-  
-
+import { useGetArtistsQuery, useGetAlbumsQuery, useGetTracksQuery } from '../apiSlice';
+const SearchScreen = ({navigation,route}) => {
+  const { data: artists = [], isLoading: isArtistsLoading } = useGetArtistsQuery();
+  const { data: albums = [], isLoading: isAlbumsLoading } = useGetAlbumsQuery();
+  const { data: tracks = [], isLoading: isTracksLoading } = useGetTracksQuery();
+  const [searchText, setSearchText] = useState( route.params);
   const categories = ['All', 'Tracks', 'Albums', 'Artists'];
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchResult, setSearchResult] = useState([]);
-
   const { playTrack } = useAudio();
-  const [artists, setArtists] = useState([]);
-  const [albums, setAlbums] = useState([]);
-  const [tracks, setTracks] = useState([]);
   
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [artistsResponse, albumsResponse, tracksResponse] = await Promise.all([
-        fetch('https://my.api.mockaroo.com/artists.json?key=5b678c00'),
-        fetch('https://my.api.mockaroo.com/albums.json?key=5b678c00'),
-        fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00')
-      ]);
-
-      const artistsData = await artistsResponse.json();
-      const albumsData = await albumsResponse.json();
-      const tracksData = await tracksResponse.json();
-
-      setArtists(artistsData);
-      setAlbums(albumsData);
-      setTracks(tracksData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+  if (isArtistsLoading || isAlbumsLoading  || isTracksLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   const searchResults = useMemo(() => {
     const keyword = searchText.toLowerCase();
@@ -79,9 +59,9 @@ const SearchScreen = ({navigation}) => {
     return results;
   }, [searchText, activeCategory]); 
   
-  const handleTrackPress = useCallback((track) => {
+  const handleTrackPress = (track) => {
     playTrack(track);
-  }, [playTrack]);
+  };
   
   useEffect(() => {
     setSearchResult(searchResults);
@@ -92,7 +72,7 @@ const SearchScreen = ({navigation}) => {
       case 'track':
         return (
           <TouchableOpacity 
-              onPress={() => navigation.navigate('Album',item)}
+              onPress={() => handleTrackPress(item)}
             >
             <View style={styles.trackItem}>
               <Image
@@ -237,12 +217,12 @@ const SearchScreen = ({navigation}) => {
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
             <Icon3 name="switcher" size={30} color="black" />
             <Text style={styles.tabLabel}>Feed</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-            <Icon2 name="music-box-multiple-outline" size={30} color="black" />
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
           <Text style={styles.tabLabel}>Library</Text>
         </TouchableOpacity>
       </View>

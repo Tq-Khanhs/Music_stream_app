@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image,SafeAreaView,KeyboardAvoidingView,Platform} from'react-native';
+import { useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
 import { useUser } from '../context/UserContext';
+import { useFetchUsersQuery } from '../apiSlice'
 
+export default function LoginScreen({navigation }) {
 
-export default function LoginScreen({navigation}) {
+  const { data: users = [], isLoading, refetch } = useFetchUsersQuery();
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      refetch(); 
+    });
+
+    return unsubscribe; 
+  }, [navigation, refetch]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const { setUser } = useUser();
-
+ 
+  
   const handleLogin = async () => {
     setEmailError('');
     setPasswordError('');
@@ -29,9 +40,6 @@ export default function LoginScreen({navigation}) {
 
         
         
-        const response = await fetch('https://6748bf4a5801f5153592092a.mockapi.io/users');
-        const users = await response.json();
-
         
         const user = users.find(u => u.email === email);
 
@@ -98,7 +106,7 @@ export default function LoginScreen({navigation}) {
             </View>
 
             <TouchableOpacity style={styles.forgotPassword} onPress={()=>navigation.navigate('SignUp')} >
-              <Text style={styles.forgotPasswordText}>Đăng ký tài khoản</Text>
+              <Text style={styles.forgotPasswordText}>SignUp</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.submitButton} onPress={handleLogin}>

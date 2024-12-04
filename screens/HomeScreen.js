@@ -1,58 +1,121 @@
-import React from 'react';
-import {View,Text,Image,FlatList,TouchableOpacity,StyleSheet,SafeAreaView,TextInput} from 'react-native';
+import React ,{useState,useCallback,useEffect}from 'react';
+import {View,Text,Image,FlatList,TouchableOpacity,StyleSheet,SafeAreaView,TextInput,Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
-import { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import { useAudio } from '../context/AudioContext';
 import MiniPlayer from '../components/MiniPlayer'
-
+import { useGetArtistsQuery, useGetAlbumsQuery, useGetChartsQuery, useGetTracksQuery, useUpdateUserMutation } from '../apiSlice';
+import { Menu } from 'react-native-paper';
 
 const HomeScreen = ({navigation}) => {
-  const [artists, setArtists] = useState([]);
-  const [albums, setAlbums] = useState([]);
-  const [charts, setCharts] = useState([]);
-  const [tracks, setTracks] = useState([]);
-  const { user } = useUser();
-  
+  const { data: artists = [], isLoading: isArtistsLoading } = useGetArtistsQuery();
+  const { data: albums = [], isLoading: isAlbumsLoading } = useGetAlbumsQuery();
+  const { data: charts = [], isLoading: isChartsLoading } = useGetChartsQuery();
+  const { data: tracks = [], isLoading: isTracksLoading } = useGetTracksQuery();
+  const { user, setUser } = useUser()
   const { playTrack } = useAudio();
+  const [updateUser] = useUpdateUserMutation();
+  const [visible, setVisible] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const openMenu = () => setVisible(true);
+  const closeMenu = () => setVisible(false);
+
+  const [followedArtists, setFollowedArtists] = useState(user.likedArtist);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [artistsResponse, albumsResponse, chartsResponse, tracksResponse] = await Promise.all([
-          fetch('https://my.api.mockaroo.com/artists.json?key=5b678c00'),
-          fetch('https://my.api.mockaroo.com/albums.json?key=5b678c00'),
-          fetch('https://my.api.mockaroo.com/charts.json?key=5b678c00'),
-          fetch('https://my.api.mockaroo.com/tracks.json?key=5b678c00')
-        ]);
+    setFollowedArtists(user.likedArtist);
+  }, [user.likedArtist]);
 
-        const artistsData = await artistsResponse.json();
-        const albumsData = await albumsResponse.json();
-        const chartsData = await chartsResponse.json();
-        const tracksData = await tracksResponse.json();
+  const getFollowStatus = useCallback((artistId) => {
+    return followedArtists.includes(artistId);
+  }, [followedArtists]);
 
-        setArtists(artistsData);
-        setAlbums(albumsData);
-        setCharts(chartsData);
-        setTracks(tracksData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        // setError('Failed to load data. Please try again.');
-      } finally {
-        // setIsLoading(false);
-      }
-    };
 
-    fetchData();
-  }, []);
+  const handlePressFollow = useCallback(async (artistId) => {
+    const isFollowing = followedArtists.includes(artistId);
+    let updatedLikedArtists;
+
+    if (isFollowing) {
+      updatedLikedArtists = followedArtists.filter((id) => id !== artistId);
+    } else {
+      updatedLikedArtists = [...followedArtists, artistId];
+    }
+
+    setFollowedArtists(updatedLikedArtists);
+    setUser((prevUser) => ({
+      ...prevUser,
+      likedArtist: updatedLikedArtists,
+    }));
+
+    try {
+      await updateUser({
+        id: user.id,
+        likedArtist: updatedLikedArtists,
+      });
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      
+      setFollowedArtists(user.likedArtist);
+      setUser((prevUser) => ({
+        ...prevUser,
+        likedArtist: user.likedArtist,
+      }));
+    }
+  }, [followedArtists, setUser, updateUser, user.id, user.likedArtist]);
+
+  if (isArtistsLoading || isAlbumsLoading || isChartsLoading || isTracksLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
   const handleTrackPress = (track) => {
     playTrack(track);
   };
   
+  const handleLogOut = () => {
+    closeMenu();
+    Alert.alert(
+      "Đăng xuất", 
+      "Bạn có chắc chắn muốn đăng xuất?", 
+      [
+        {
+          text: "Không", 
+          onPress: () => console.log("Hủy đăng xuất"), 
+          style: "cancel", 
+        },
+        {
+          text: "Có", 
+          onPress: () => {
+            
+            navigation.reset({
+              index: 0, 
+              routes: [{ name: 'Welcome' }], 
+            });
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+  const handleUpgrade = () => {
+    
+    closeMenu();
+    navigation.navigate('Plan')
+  };
 
-  console.log(tracks)
+
   const suggestionTracks = tracks.slice(0, 3);
+  const handleSubmit = () => {
+    if (searchText.trim()) {
+      
+      navigation.navigate('SearchScreen',searchText);
+    }
+    
+  };
   
   return (
     <SafeAreaView style={styles.container}>
@@ -68,17 +131,26 @@ const HomeScreen = ({navigation}) => {
           </View>
           
           <View style={styles.userContainer}>
-            <Icon name="bell" size={30} color="black" />
-            <Image
-            source={{uri: user.image}}  
-            style={styles.avatar}
-          />
+            <Icon name="bell" size={30} color="black" style={styles.bell} />
+            <Menu
+            style={styles.menu}
+            visible={visible}
+            onDismiss={closeMenu}
+            anchor={
+              <TouchableOpacity onPress={openMenu}>
+                <Image
+                  source={{ uri: user.image }}
+                  style={[styles.avatar, styles.anchor]}
+                />
+              </TouchableOpacity>
+            }
+          >
+            <Menu.Item onPress={handleLogOut} title="Log out" style={styles.menuItem} />
+            <Menu.Item onPress={handleUpgrade} title="Upgrade to premium" style={styles.menuItem} />
+          </Menu>
           </View>
           
         </View>
-       
-        
-      
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <Text style={styles.greeting}>Good morning</Text>
@@ -91,10 +163,13 @@ const HomeScreen = ({navigation}) => {
       <View style={styles.searchContainer}>
         <Icon name="search" size={20} color="black" />
         <TextInput
-          style={styles.searchInput}
-          placeholder="What you want to listen to"
-          placeholderTextColor="#666"
-        />
+        style={styles.searchInput}
+        placeholder="What you want to listen to"
+        placeholderTextColor="#666"
+        onSubmitEditing={handleSubmit} 
+        onChangeText={setSearchText}
+        returnKeyType="done" 
+      />
       </View>
 
       
@@ -188,15 +263,22 @@ const HomeScreen = ({navigation}) => {
                 data={artists}
                 renderItem={({ item }) => (
                   <TouchableOpacity style={styles.artistCard}  onPress={() => navigation.navigate('ArtistFrofile',item)}>
-                    <Image source={{uri:item.image }} style={styles.artistImage} />
-                    <Text style={styles.artistName}>{item.name}</Text>
-                    <TouchableOpacity style={styles.followButton}>
-                      <Text style={styles.followButtonText}>Follow</Text>
+                  <Image source={{ uri: item.image }} style={styles.artistImage} />
+                  <Text style={styles.artistName}>{item.name}</Text>
+
+                    <TouchableOpacity
+                      style={[styles.followButton, getFollowStatus(item.id) && styles.followedButton]}
+                      onPress={() => handlePressFollow(item.id)} 
+                    >
+                      <Text style={[styles.followButtonText, getFollowStatus(item.id) && styles.followedButtonText]}>
+                        {getFollowStatus(item.id)?"Followed": "Follow"}  
+                        {console.log(getFollowStatus(item.id))}
+                      </Text>
                     </TouchableOpacity>
-                  </TouchableOpacity>
-                )}
-                keyExtractor={item => item.id}
-              />
+                   </TouchableOpacity>
+                  )}
+                  keyExtractor={(item) => item.id.toString()}
+                  />
             </View>
           </>
         )}
@@ -214,12 +296,12 @@ const HomeScreen = ({navigation}) => {
             <Icon name="search" size={30} color="black" />
             <Text style={styles.tabLabel}>Search</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
             <Icon3 name="switcher" size={30} color="black" />
             <Text style={styles.tabLabel}>Feed</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-            <Icon2 name="music-box-multiple-outline" size={30} color="black" />
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
           <Text style={styles.tabLabel}>Library</Text>
         </TouchableOpacity>
       </View>
@@ -239,6 +321,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     
   },
+  menu:{
+    width: 40,
+    height:40,
+    paddingLeft:-200
+  },
+  bell:{
+    marginLeft:230
+  }
+  ,
   userInfo: {
     flex: 1,
   },
@@ -270,6 +361,8 @@ const styles = StyleSheet.create({
     
     flexDirection: 'row',
     marginVertical:20,
+    alignItems: "center",
+    justifyContent: 'flex-end'
 
     
     
@@ -448,6 +541,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  followedButtonText:{
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'black'
+
+  },
+  followedButton:{
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: '#d3d3d3',
+    borderRadius: 20,
+
+  },
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -491,6 +597,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'white'
   },
+  avatar: {
+    width: 40,  
+    height: 40,
+    borderRadius: 20,  
+  },
+  menuItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  anchor: {
+      
+    borderColor: 'gray', 
+    padding: 4,  
+    width: 40,
+    marginLeft: 10
+  },
+  menu:{
+    marginTop:50
+  }
 
 });
 
