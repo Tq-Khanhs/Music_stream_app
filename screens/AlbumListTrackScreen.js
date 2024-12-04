@@ -1,6 +1,6 @@
 import React, {useState,useCallback} from 'react'
-import { View, Text, Image, TouchableOpacity, SafeAreaView, StyleSheet,FlatList } from 'react-native'
-
+import { View, Text, Image, TouchableOpacity, SafeAreaView, StyleSheet,FlatList ,ActivityIndicator} from 'react-native'
+import { Ionicons, Feather } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
@@ -66,8 +66,8 @@ export default function AlbumListTrack({ route, navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon4 name="arrow-back-ios" size={20} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Icon4 name="mobile-screen-share" size={25} color="black" />
+          <TouchableOpacity >
+            <Feather name="cast" size={24} color="#000" />
           </TouchableOpacity>
         </View>
 

@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, Share,ActivityIndicator } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, Share ,ActivityIndicator} from 'react-native';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
 import Icon4 from 'react-native-vector-icons/MaterialIcons'
-import { useNavigation } from '@react-navigation/native';
-
-const FeedScreen = () => {
-   const navigation = useNavigation();
+const FeedScreen = ({navigation}) => {
+  
   const [feedPosts, setFeedPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [reposts, setReposts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-
   useEffect(() => {
     fetchFeedPosts();
   }, []);
@@ -252,8 +249,8 @@ const FeedScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Feed</Text>
-        <TouchableOpacity>
-            <Icon4 name="mobile-screen-share" size={25} color="black" />
+        <TouchableOpacity >
+            <Feather name="cast" size={24} color="#000" />
           </TouchableOpacity>
       </View>
 
@@ -303,12 +300,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     marginTop: 13
+  }, tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
   },
-  containerLoad: {
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: '#fff', 
+  tabItem: {
+    alignItems: 'center',
+  },
+  tabLabel: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#666',
   },
   header: {
     flexDirection: 'row',
@@ -318,7 +323,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-    
   },
   headerTitle: {
     fontSize: 20,
@@ -455,6 +459,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: '#666',
   },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
+  },
   activeFooterText: {
     color: '#1DA1F2',
   },
@@ -462,20 +472,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  tabItem: {
-    alignItems: 'center',
-  },
-  tabLabel: {
-    fontSize: 12,
-    marginTop: 4,
-    color: '#666',
   },
 });

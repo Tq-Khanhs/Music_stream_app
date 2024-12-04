@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator,SafeAreaView } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Feather';
+import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
+import Icon3 from 'react-native-vector-icons/AntDesign'
 
 
-const PlaylistScreen = () => {
+const PlaylistScreen = ({navigation}) => {
   // State to manage playlists
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Hook for navigation
-  const navigation = useNavigation();
+
 
   // Fetch playlists from API
   useEffect(() => {
@@ -103,9 +106,9 @@ const renderPlaylistItem = ({ item }) => (
 // Render loading state
 if (loading) {
   return (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#1DB954" />
-    </View>
+      <SafeAreaView style={styles.containerLoad}>
+        <ActivityIndicator size="large" color="#6200EE" />
+      </SafeAreaView>
   );
 }
 
@@ -151,35 +154,24 @@ return (
     </TouchableOpacity>
 
     {/* Bottom Navigation */}
-    <View style={styles.footer}>
-      <TouchableOpacity 
-        style={styles.footerItem} 
-        onPress={() => handleBottomNavPress('Home')}
-      >
-        <Ionicons name="home-outline" size={24} color="#666" />
-        <Text style={styles.footerText}>Home</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={styles.footerItem}
-        onPress={() => handleBottomNavPress('Search')}
-      >
-        <Ionicons name="search-outline" size={24} color="#666" />
-        <Text style={styles.footerText}>Search</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={styles.footerItem}
-        onPress={() => handleBottomNavPress('Feed')}
-      >
-        <Ionicons name="newspaper-outline" size={24} color="#666" />
-        <Text style={styles.footerText}>Feed</Text>
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={[styles.footerItem, styles.activeFooterItem]}
-      >
-        <Ionicons name="library" size={24} color="#1DB954" />
-        <Text style={[styles.footerText, styles.activeFooterText]}>Library</Text>
-      </TouchableOpacity>
-    </View>
+    <View style={styles.tabBar}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
+            <Icon name="home" size={30} color="black" />
+            <Text style={styles.tabLabel}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('SearchScreen')}>
+            <Icon name="search" size={30} color="black" />
+            <Text style={styles.tabLabel}>Search</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Feed')}>
+            <Icon3 name="switcher" size={30} color="black" />
+            <Text style={styles.tabLabel}>Feed</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem}>
+            <Icon2 name="music-box-multiple-outline" size={30} color="black" onPress={() => navigation.navigate('MyLibrary')} />
+          <Text style={styles.tabLabel}>Library</Text>
+        </TouchableOpacity>
+      </View>
   </View>
 );
 };
@@ -188,6 +180,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  tabItem: {
+    alignItems: 'center',
+  },
+  tabLabel: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#666',
   },
   header: {
     flexDirection: 'row',
@@ -294,6 +300,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  containerLoad: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
   },
   errorContainer: {
     flex: 1,

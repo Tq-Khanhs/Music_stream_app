@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet, FlatList } from 'react-native'
+import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, StyleSheet, FlatList ,ActivityIndicator} from 'react-native'
 import Icon from 'react-native-vector-icons/Feather';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons'
 import Icon3 from 'react-native-vector-icons/AntDesign'
