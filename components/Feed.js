@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, Share } from 'react-native';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-
 const FeedScreen = () => {
    const navigation = useNavigation();
   const [feedPosts, setFeedPosts] = useState([]);
@@ -10,7 +9,6 @@ const FeedScreen = () => {
   const [reposts, setReposts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
-
   useEffect(() => {
     fetchFeedPosts();
   }, []);

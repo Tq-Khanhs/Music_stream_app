@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+
 
 const LibraryScreen = () => {
-  const [activeTab, setActiveTab] = useState('Playlists');
+  const [activeTab, setActiveTab] = useState(null);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [libraryItems, setLibraryItems] = useState([]);
   const [likedSongs, setLikedSongs] = useState([]);
   const [followedArtists, setFollowedArtists] = useState([]);
@@ -19,22 +21,47 @@ const LibraryScreen = () => {
   }, []);
 
   const fetchLibraryItems = async () => {
-    try {
-      const response = await axios.get('https://my.api.mockaroo.com/library.json?key=8e25acb0');
-      setLibraryItems(response.data);
-      setLoading(false);
-    } catch (err) {
-      setError('Failed to fetch library items');
-      setLoading(false);
-      console.error(err);
-    }
-  };
+  try {
+    const response = await fetch('https://my.api.mockaroo.com/library.json?key=8e25acb0');
+    if (!response.ok) throw new Error('Failed to fetch library items');
 
+    const data = await response.json();
+    setLibraryItems(data);
+    setFilteredItems(data); // Hiển thị toàn bộ dữ liệu ngay từ đầu
+    setLoading(false);
+  } catch (err) {
+    setError('Failed to fetch library items');
+    setLoading(false);
+    console.error(err);
+  }
+};
 
   const handleTabPress = (tab) => {
-    setActiveTab(tab);
-    // Có thể thêm logic filter items theo tab
-  };
+  setActiveTab(tab);
+  switch (tab) {
+    case 'Playlists':
+      setFilteredItems(libraryItems.filter(item => item.type === 'Playlist'));
+      break;
+    case 'New tag':
+      setFilteredItems(libraryItems.filter(item => item.type === 'Tag'));
+      break;
+    case 'Songs':
+      setFilteredItems(libraryItems.filter(item => item.type === 'Song'));
+      break;
+    case 'Albums':
+      setFilteredItems(libraryItems.filter(item => item.type === 'Album'));
+      break;
+    case 'Artists':
+      setFilteredItems(libraryItems.filter(item => item.type === 'Artist'));
+      break;
+    default:
+      setFilteredItems(libraryItems); // Hiển thị toàn bộ dữ liệu nếu không chọn tab
+      break;
+  }
+};
+
+
+
 
   const toggleLike = (songId) => {
     setLikedSongs(currentLikedSongs => 
@@ -53,13 +80,8 @@ const LibraryScreen = () => {
   };
 
   const handlePlaylistPress = (playlist) => {
-    setSelectedPlaylist(playlist);
-    Alert.alert(
-      'Playlist Selected', 
-      `Opened playlist: ${playlist.title}`,
-      [{ text: 'OK', onPress: () => {} }]
-    );
-  };
+  navigation.navigate('Playlist', { playlist });
+};
 
   const renderItem = ({ item }) => {
     const isLiked = likedSongs.includes(item.id);
@@ -123,28 +145,26 @@ const LibraryScreen = () => {
     );
   };
   const renderTabs = () => (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false}
-      style={styles.tabsContainer}
-    >
-      {tabs.map((tab, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.tab, 
-            activeTab === tab && styles.activeTab
-          ]}
-          onPress={() => handleTabPress(tab)}
-        >
-          <Text style={[
-            styles.tabText, 
-            activeTab === tab && styles.activeTabText
-          ]}>{tab}</Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
-  );
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    style={styles.tabsContainer}
+    contentContainerStyle={{ flexGrow: 1 }}
+  >
+    {tabs.map((tab, index) => (
+      <TouchableOpacity
+        key={index}
+        style={[styles.tab, activeTab === tab && styles.activeTab]}
+        onPress={() => handleTabPress(tab)}
+      >
+        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+          {tab}
+        </Text>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+);
+
 
   const handleFooterNavigation = (screen) => {
     // Thêm logic điều hướng giữa các màn hình
@@ -184,12 +204,21 @@ const LibraryScreen = () => {
       </View>
       {renderTabs()}
       <FlatList
-        data={libraryItems}
+        data={activeTab ? filteredItems : []} // Hiển thị trống nếu chưa chọn tab
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={
+          !activeTab && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Please select a tab to view items.</Text>
+            </View>
+          )
+        }
         showsVerticalScrollIndicator={false}
       />
+
+
       <View style={styles.footer}>
         {['Home', 'Search', 'Feed', 'Library'].map((screen, index) => (
           <TouchableOpacity 
@@ -231,7 +260,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 30,
     paddingBottom: 13,
   },
   headerTitle: {
@@ -239,16 +268,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabsContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
-  },
+  flexDirection: 'row',
+  justifyContent: 'space-between', // Phân bố đều các tab
+  paddingHorizontal: 16,
+  marginBottom: 8,
+},
+
   tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    backgroundColor: '#f2f2f2',
-    borderRadius: 20,
-  },
+  paddingVertical: 8,
+  flex: 1, // Mỗi tab chiếm không gian bằng nhau
+  marginHorizontal: 4, // Tạo khoảng cách giữa các tab
+  backgroundColor: '#f2f2f2',
+  borderRadius: 20,
+  alignItems: 'center', // Căn giữa nội dung tab
+},
+
   tabText: {
     color: '#666',
     fontSize: 14,
@@ -346,10 +380,11 @@ const styles = StyleSheet.create({
     color: '#1DB954',
   },
   activeTab: {
-    backgroundColor: '#000',
+   backgroundColor: '#1DB954',
   },
   activeTabText: {
     color: '#fff',
+   fontWeight: '600',
   },
   followedButton: {
     backgroundColor: '#666',

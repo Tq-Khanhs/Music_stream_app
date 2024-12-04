@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList, TextInput, StyleSheet, Alert, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import axios from 'axios';
-
 const API_BASE_URL = 'https://my.api.mockaroo.com/FeedComment.json?key=8e25acb0';
 
 const CommentSection = ({ route, navigation }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [likedComments, setLikedComments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { post } = route.params || { post: {} };
 
@@ -17,88 +17,74 @@ const CommentSection = ({ route, navigation }) => {
   const postImage = require('../assets/image8/Track1.png');
 
    useEffect(() => {
-    if (post && post.id) {
-      loadComments(post.id);
-    } else {
-      console.warn('No post data available');
-    }
-  }, [post]);
+  loadComments(); // Không cần postId nếu API không yêu cầu
+}, []);
 
  const loadComments = async (postId) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/comments?postId=${postId}`, {
-        headers: {
-          'Authorization': 'Bearer YOUR_TOKEN_HERE'
-        }
-      });
-      setComments(response.data);
-    } catch (error) {
-      console.error('Comment loading error:', error);
-    }
-  };
-  const sendComment = async () => {
-  if (newComment.trim() === '') return;
-
-  const newCommentObj = {
-    id: Date.now(), // Temporary ID (sẽ được thay thế nếu server trả về ID mới)
-    user: 'Current User',
-    comment: newComment,
-    time: 'Just now', // Tạm thời hiển thị "Just now"
-  };
-
-  setComments([...comments, newCommentObj]);
-  setNewComment('');
-
   try {
-    const response = await axios.post(`${API_BASE_URL}`, newCommentObj, {
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer YOUR_TOKEN_HERE' },
+    const response = await axios.get(`${API_BASE_URL}`, {
+      headers: {
+        Authorization: 'Bearer YOUR_TOKEN_HERE',
+      },
     });
-
-    // Cập nhật comment với ID từ server (nếu có)
-    setComments((prev) =>
-      prev.map((comment) => (comment.id === newCommentObj.id ? response.data : comment))
-    );
+    if (response.data && Array.isArray(response.data)) {
+      setComments(response.data);
+    } else {
+      console.warn('Invalid data format');
+    }
   } catch (error) {
-    console.error('Error sending comment:', error);
-    Alert.alert('Error', 'Failed to send comment.');
+    console.error('Error loading comments:', error);
   }
 };
 
+// Hàm sendComment
+  const sendComment = async () => {
+    if (newComment.trim() === '') return;
 
-//const newCommentObj = {
- //       id: Date.now(), // temporary id
- //       postId: post.id,
- //       user: 'Current User',
-  //      comment: newComment,
- //      time: new Date().toLocaleTimeString()
-  //    };
-//
- //     setComments([...comments, newCommentObj]);
-//      setNewComment('');
-  //  } catch (error) {
-  //    console.error('Send comment error:', error);
- //     Alert.alert('Error', 'Could not send comment');
- //   }
- // };
+    const newCommentObj = {
+      id: Date.now(), // Temporary ID
+      user: 'Current User',
+      comment: newComment,
+      time: 'Just now', // Temporary time
+    };
 
-  // Hàm like comment
-  const toggleLikeComment = async (commentId) => {
+    setComments([...comments, newCommentObj]);
+    setNewComment('');
+
     try {
-      const isCurrentlyLiked = likedComments.includes(commentId);
-      const response = await axios.put(`${API_BASE_URL}/comments/${commentId}`, {
-        liked: !isCurrentlyLiked
+      const response = await axios.post(`${API_BASE_URL}`, newCommentObj, {
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer YOUR_TOKEN_HERE' },
       });
 
-      setLikedComments((current) =>
-        isCurrentlyLiked
-          ? current.filter((id) => id !== commentId)
-          : [...current, commentId]
+      // Update comment with server response
+      setComments((prev) =>
+        prev.map((comment) => (comment.id === newCommentObj.id ? response.data : comment))
       );
     } catch (error) {
-      console.error('Toggle like error:', error);
+      console.error('Error sending comment:', error);
+      Alert.alert('Error', 'Failed to send comment.');
     }
   };
 
+  // Hàm like comment
+  const toggleLikeComment = async (commentId) => {
+  const isCurrentlyLiked = likedComments.includes(commentId);
+
+  try {
+    await axios.put(`${API_BASE_URL}/comments/${commentId}`, {
+      liked: !isCurrentlyLiked,
+    });
+
+    setLikedComments((current) =>
+      isCurrentlyLiked
+        ? current.filter((id) => id !== commentId)
+        : [...current, commentId]
+    );
+  } catch (error) {
+    console.error('Toggle like error:', error);
+    Alert.alert('Error', 'Failed to update like status.');
+  }
+};
 
   // Hàm chia sẻ bài đăng
   const sharePost = async () => {
@@ -115,15 +101,14 @@ const CommentSection = ({ route, navigation }) => {
     }
   };
 
-// Render từng comment
 const renderComment = ({ item }) => (
   <View style={styles.commentItem}>
     <Image source={avatarSource} style={styles.avatar} />
     <View style={styles.commentContent}>
-      <Text style={styles.userName}>{item.user}</Text>
-      <Text style={styles.comment}>{item.comment}</Text>
+      <Text style={styles.userName}>{item.user}</Text> {/* Hiển thị tên user */}
+      <Text style={styles.comment}>{item.comment}</Text> {/* Hiển thị comment */}
       <View style={styles.commentActions}>
-        <Text style={styles.commentTime}>{item.time}</Text>
+        <Text style={styles.commentTime}>{item.time}</Text> {/* Hiển thị thời gian */}
         <TouchableOpacity onPress={() => toggleLikeComment(item.id)}>
           <Ionicons
             name={likedComments.includes(item.id) ? 'heart' : 'heart-outline'}
@@ -135,7 +120,6 @@ const renderComment = ({ item }) => (
     </View>
   </View>
 );
-
 
 // Hàm quay lại màn hình trước
   const goBack = () => {
@@ -177,32 +161,33 @@ return (
         </TouchableOpacity>
         
         <FlatList
-          data={comments}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderComment}
-          contentContainerStyle={styles.commentList}
-        />
-        
+      data={comments} // Đây là state chứa dữ liệu từ API
+      keyExtractor={(item) => item.id.toString()} // Sử dụng `id` làm key
+      renderItem={renderComment} // Hàm để render từng comment
+      contentContainerStyle={styles.commentList} // Custom style (nếu cần)
+      initialNumToRender={5} // Tùy chỉnh số lượng render ban đầu
+      />
+
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Write a comment..."
-            placeholderTextColor="#ccc"
-            value={newComment}
-            onChangeText={setNewComment}
-            multiline
+        <TextInput
+          style={styles.commentInput}
+          placeholder="Write a comment..."
+          placeholderTextColor="#ccc"
+          value={newComment}
+          onChangeText={setNewComment}
+          multiline
+        />
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={sendComment} // Gọi hàm sendComment
+          disabled={newComment.trim() === ''}
+        >
+          <Ionicons
+            name="send"
+            size={20}
+            color={newComment.trim() === '' ? '#ccc' : '#1DA1F2'}
           />
-          <TouchableOpacity 
-            style={styles.sendButton} 
-            onPress={sendComment}
-            disabled={newComment.trim() === ''}
-          >
-            <Ionicons 
-              name="send" 
-              size={20} 
-              color={newComment.trim() === '' ? "#ccc" : "#1DA1F2"} 
-            />
-          </TouchableOpacity>
+        </TouchableOpacity>
         </View>
       </View>
     </View>
