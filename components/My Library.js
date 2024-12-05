@@ -60,9 +60,6 @@ const LibraryScreen = () => {
   }
 };
 
-
-
-
   const toggleLike = (songId) => {
     setLikedSongs(currentLikedSongs => 
       currentLikedSongs.includes(songId)
@@ -165,7 +162,6 @@ const LibraryScreen = () => {
   </ScrollView>
 );
 
-
   const handleFooterNavigation = (screen) => {
     // Thêm logic điều hướng giữa các màn hình
     Alert.alert(
@@ -204,20 +200,19 @@ const LibraryScreen = () => {
       </View>
       {renderTabs()}
       <FlatList
-        data={activeTab ? filteredItems : []} // Hiển thị trống nếu chưa chọn tab
+        data={activeTab ? filteredItems : libraryItems} // Nếu chưa chọn tab, hiển thị toàn bộ dữ liệu API
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
-          !activeTab && (
+          filteredItems.length === 0 && (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Please select a tab to view items.</Text>
+              <Text style={styles.emptyText}>No items to display.</Text>
             </View>
           )
         }
         showsVerticalScrollIndicator={false}
       />
-
 
       <View style={styles.footer}>
         {['Home', 'Search', 'Feed', 'Library'].map((screen, index) => (
